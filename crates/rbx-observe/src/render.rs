@@ -141,7 +141,7 @@ mod tests {
     fn truncation_counts_characters_not_bytes() {
         // Descriptions open with emoji far more often than not; slicing bytes
         // here would panic mid-codepoint.
-        assert_eq!(truncate("🌎 Sandbox Frontier is a sandbox", 8), "🌎 Sandbox Frontier…");
+        assert_eq!(truncate("🌎 a long description", 8), "🌎 a long…");
         assert_eq!(truncate("  short  ", 50), "short");
     }
 

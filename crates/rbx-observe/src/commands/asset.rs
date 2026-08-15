@@ -137,7 +137,7 @@ mod tests {
     #[tokio::test]
     async fn a_bad_id_reports_its_state_instead_of_the_placeholder_url() {
         let server = MockServer::start().await;
-        // Recorded verbatim from the live endpoint for a nonexistent id: an
+        // The shape the live endpoint returns for a nonexistent id: an
         // `Error` state carrying the grey placeholder image, which is handed
         // back identically for every invalid id.
         Mock::given(method("GET"))

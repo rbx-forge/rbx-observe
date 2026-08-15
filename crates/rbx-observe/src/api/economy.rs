@@ -110,8 +110,10 @@ mod tests {
     #[tokio::test]
     async fn a_product_id_separates_a_published_place_from_an_internal_one() {
         let server = MockServer::start().await;
-        // Both recorded live from one universe: the root place the game page
-        // links to, and a `Tutorial` place that is not published.
+        // The two shapes one universe really answers with: a published root
+        // place, and a `Tutorial` place that is not. Ids are invented — this
+        // repository does not carry other people's identifiers — the fields
+        // and their values are what was measured.
         Mock::given(method("GET"))
             .and(path("/v2/assets/2222222222222222/details"))
             .respond_with(ResponseTemplate::new(200).set_body_string(
@@ -145,8 +147,8 @@ mod tests {
     #[tokio::test]
     async fn a_universe_id_passed_here_is_refused_despite_the_200() {
         let server = MockServer::start().await;
-        // The real recorded response for a universe id: HTTP 200, someone
-        // else's asset, no error anywhere.
+        // The shape a universe id really gets back here: HTTP 200, an
+        // unrelated asset, no error anywhere.
         Mock::given(method("GET"))
             .and(path("/v2/assets/1111111111122/details"))
             .respond_with(

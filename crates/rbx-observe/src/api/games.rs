@@ -327,7 +327,9 @@ mod tests {
         let server = MockServer::start().await;
         Mock::given(method("GET"))
             .and(path("/universes/v1/places/1818/universe"))
-            .respond_with(ResponseTemplate::new(200).set_body_string(r#"{"universeId":1111111111121}"#))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_string(r#"{"universeId":1111111111121}"#),
+            )
             .expect(1)
             .mount(&server)
             .await;

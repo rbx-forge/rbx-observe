@@ -104,8 +104,8 @@ rbx-observe charts --category obby-and-platformer
 ```
 Top Earning
   top-earning · 94 games
-    1.   376 346  ⚔️ Sea Trials                      universe 1111111111115 · RPG
-    2.   105 347  Warrior Saga [Warrior Saga🐉]   universe 1111111111116 · Strategy
+    1.   376 346  Sea Trials                      universe 1111111111115 · RPG
+    2.   105 347  Warrior Saga   universe 1111111111116 · Strategy
 ```
 
 Roughly 26 rankings over 5 pages. The obvious ones are on page one

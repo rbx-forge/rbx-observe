@@ -497,7 +497,7 @@ mod tests {
         };
 
         // Both of these are `Minimal`. Only the gate differs, which is the
-        // whole reason they are two lines: recorded from a 16+ experience and
+        // whole reason they are two lines: measured on a 16+ experience and
         // an all-ages one that share a maturity label.
         let gated = rated(Some(16), Some("16+"));
         assert_eq!(maturity_line(&gated), "Minimal");

@@ -3,7 +3,7 @@ source: crates/rbx-observe/src/commands/badges.rs
 expression: render(&report)
 ---
 Badges
-     5 961 800  Welcome to Sandbox Frontier!                +581 073 today · 100% win · icon 4444444444444442
+     5 961 800  Welcome to Sandbox Frontier!      +581 073 today · 100% win · icon 4444444444444442
              5  Retired (disabled)                +0 today · 4% win · icon 7
 
 Summary
