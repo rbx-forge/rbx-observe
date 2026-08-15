@@ -16,9 +16,8 @@ rbx-observe asset 4444444444444441 --size 1024x1024
 No API key. No cookie. No account. Everything it reads is what a logged-out
 visitor sees.
 
-> **Status: early.** Eight commands work and are tested against recorded
-> responses. There is no release yet — build it from source (below). Field
-> names in `--json` can still move.
+> **Status: early (0.1.0).** Eight commands, tested against recorded response
+> shapes. Field names in `--json` can still move before 1.0.
 
 ## What it is for
 
@@ -57,7 +56,27 @@ it is declined regardless of how it is framed.
 
 ## Install
 
-No release yet. From source, with Rust 1.88 or newer:
+With [Rokit](https://github.com/rojo-rbx/rokit), in your project's
+`rokit.toml`:
+
+```toml
+[tools]
+rbx-observe = "rbx-forge/rbx-observe@0.1.0"
+```
+
+then `rokit install`. Or add it to whatever you have open:
+
+```sh
+rokit add rbx-forge/rbx-observe            # this project
+rokit add --global rbx-forge/rbx-observe   # everywhere
+```
+
+The command is `rbx-observe`, same as the repository, so no `--alias` is
+needed.
+
+Prebuilt for Linux x86_64, Windows x86_64 and macOS Apple Silicon; each
+release also carries `SHA256SUMS`. From source instead, with Rust 1.88 or
+newer:
 
 ```sh
 git clone https://github.com/rbx-forge/rbx-observe
