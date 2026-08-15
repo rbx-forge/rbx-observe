@@ -1,0 +1,13 @@
+---
+source: crates/rbx-observe/src/commands/media.rs
+expression: render(&media)
+---
+Carousel
+  1. video   preview video
+     ref 4444444444444449
+  2. image   asset 4444444444444443
+     alt: lobby
+  3. image   asset 4444444444444444
+
+  2 image(s), opens on a video
+  render icons  rbx-observe asset 4444444444444443 4444444444444444

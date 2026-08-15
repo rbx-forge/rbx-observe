@@ -160,4 +160,31 @@ mod tests {
         assert_eq!(assets.resolved[0].state, "Error");
         assert_eq!(assets.resolved[0].url, None);
     }
+
+    #[tokio::test]
+    async fn the_rendering_is_stable() {
+        colored::control::set_override(false);
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/v1/assets"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"data":[
+                   {"targetId":4444444444444441,"state":"Completed",
+                    "imageUrl":"https://tr.rbxcdn.com/180DAY-c0/420/420/Image/Png/noFilter"},
+                   {"targetId":999999999999999,"state":"Error",
+                    "imageUrl":"https://t2.rbxcdn.com/180DAY-a53354b1"}]}"#,
+            ))
+            .mount(&server)
+            .await;
+
+        let assets = collect(
+            &Client::with_base_url(&server.uri()),
+            &[4444444444444441, 999999999999999, 7],
+            "420x420",
+        )
+        .await
+        .unwrap();
+
+        insta::assert_snapshot!(render(&assets));
+    }
 }

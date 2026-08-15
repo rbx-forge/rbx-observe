@@ -71,9 +71,8 @@ pub fn render(media: &Media) -> String {
     }
 
     let _ = writeln!(out);
-    if let Some(hint) = asset_hint(&media.image_asset_ids) {
-        let _ = writeln!(out, "  {}", dim(&hint));
-    }
+    // Count first, then the hint: every other command ends on the hint, and
+    // the summary line is what the eye goes to.
     let _ = writeln!(
         out,
         "  {} image(s), {}",
@@ -84,6 +83,9 @@ pub fn render(media: &Media) -> String {
             "no preview video"
         }
     );
+    if let Some(hint) = asset_hint(&media.image_asset_ids) {
+        let _ = writeln!(out, "  {}", dim(&hint));
+    }
 
     out
 }
@@ -126,5 +128,27 @@ mod tests {
         // The video entry carries an imageId too — its poster frame. Counting
         // it as a screenshot would inflate every carousel with a video by one.
         assert_eq!(media.image_asset_ids, vec![4444444444444443, 4444444444444444]);
+    }
+
+    #[tokio::test]
+    async fn the_rendering_is_stable() {
+        colored::control::set_override(false);
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/v2/games/42/media"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"data":[
+                   {"assetTypeId":86,"assetType":"GamePreviewVideo","videoId":"4444444444444449"},
+                   {"assetTypeId":1,"assetType":"Image","imageId":4444444444444443,"altText":"lobby"},
+                   {"assetTypeId":1,"assetType":"Image","imageId":4444444444444444}]}"#,
+            ))
+            .mount(&server)
+            .await;
+
+        let media = collect(&Client::with_base_url(&server.uri()), 42)
+            .await
+            .unwrap();
+
+        insta::assert_snapshot!(render(&media));
     }
 }

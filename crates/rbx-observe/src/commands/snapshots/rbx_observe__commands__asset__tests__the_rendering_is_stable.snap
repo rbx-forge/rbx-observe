@@ -1,0 +1,9 @@
+---
+source: crates/rbx-observe/src/commands/asset.rs
+expression: render(&assets)
+---
+Assets at 420x420
+  4444444444444441
+    https://tr.rbxcdn.com/180DAY-c0/420/420/Image/Png/noFilter
+  999999999999999  Error
+  7  Unanswered
