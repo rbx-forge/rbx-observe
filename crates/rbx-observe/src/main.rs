@@ -79,10 +79,10 @@ enum Command {
         place: bool,
     },
 
-    /// Everything about one experience, as one document worth keeping.
+    /// Everything about one experience: every section, in one run.
     ///
-    /// The summary prints; `--json` carries the whole thing, which is what to
-    /// redirect into a dated file and compare later.
+    /// `--json` makes it one document to keep and compare later; `--summary`
+    /// reduces it to its shape.
     Snapshot {
         /// Universe id, place id, or a roblox.com game URL.
         target: String,
@@ -94,6 +94,10 @@ enum Command {
         /// requests per place, none of which batch.
         #[arg(long)]
         places: bool,
+
+        /// Print the shape of the experience instead of every section.
+        #[arg(long)]
+        summary: bool,
     },
 
     /// Every place in the universe: whether each looks published, and what is
@@ -201,9 +205,9 @@ async fn main() -> Result<()> {
         Command::Badges { .. } => commands::badges::run(&client, universe_id, cli.json).await,
         Command::Media { .. } => commands::media::run(&client, universe_id, cli.json).await,
         Command::Places { .. } => commands::places::run(&client, universe_id, cli.json).await,
-        Command::Snapshot { places, .. } => {
-            commands::snapshot::run(&client, universe_id, places, cli.json).await
-        }
+        Command::Snapshot {
+            places, summary, ..
+        } => commands::snapshot::run(&client, universe_id, places, summary, cli.json).await,
         Command::Charts {
             sort,
             category,

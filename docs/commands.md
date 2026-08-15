@@ -132,10 +132,13 @@ rbx-observe snapshot <universe-id> --json > snapshots/2026-08-15.json
 rbx-observe snapshot <universe-id> --places --json   # slower, see below
 ```
 
-The human output is a summary — players, visits, votes, storefront size and
-price band, badge totals, place count, carousel. The **whole** thing is in
-`--json`: the full game detail, every pass and product, every badge, the
-carousel entries, and a `captured_at_unix`.
+**It prints every section**: the game, its storefront, its badges, its
+carousel, the places when asked, and an "At a glance" block at the end. Around
+a hundred lines on a mid-sized experience — one run instead of five.
+
+`--summary` reduces it to that final block alone. `--json` carries the whole
+thing as one document: the full game detail, every pass and product, every
+badge, the carousel entries, and a `captured_at_unix`.
 
 That timestamp is a number rather than a formatted date on purpose: the file
 name is where a human date belongs, and a snapshot that disagrees with its own

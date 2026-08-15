@@ -19,7 +19,7 @@ use anyhow::Result;
 use serde::Serialize;
 
 use crate::api::Client;
-use crate::commands::{badges, game, places, storefront};
+use crate::commands::{badges, game, media, places, storefront};
 use crate::render::{dim, heading, thousands};
 
 #[derive(Debug, Serialize)]
@@ -68,16 +68,48 @@ pub async fn collect(client: &Client, universe_id: u64, with_places: bool) -> Re
     })
 }
 
-/// A summary, not a dump. Everything is in `--json`; printing all of it here
-/// would produce a wall nobody reads, and the command exists to be redirected
-/// into a file.
+/// Everything, in reading order: what the game is, what it sells, what it
+/// rewards, what it shows, and — when asked for — what runs on each place.
+///
+/// This composes the per-command renderings instead of reimplementing them,
+/// so `snapshot` and `storefront` cannot drift into printing one catalogue
+/// two different ways.
 pub fn render(snapshot: &Snapshot) -> String {
+    let mut out = String::new();
+
+    // A blank line between sections: each `render` ends with its own content
+    // and no trailing gap, so the separation belongs to whoever composes them.
+    let mut section = |rendered: String| {
+        if !out.is_empty() {
+            out.push('\n');
+        }
+        out.push_str(&rendered);
+    };
+
+    section(game::render(&snapshot.game));
+    section(storefront::render(&snapshot.storefront));
+    section(badges::render(&snapshot.badges));
+    section(media::render(&media::from_entries(
+        snapshot.universe_id,
+        snapshot.game.media.clone(),
+    )));
+    if let Some(places) = &snapshot.places {
+        section(places::render(places));
+    }
+    section(render_summary(snapshot));
+    out
+}
+
+/// The same experience in a dozen lines, for the moment somebody wants its
+/// shape rather than its detail.
+pub fn render_summary(snapshot: &Snapshot) -> String {
     let mut out = String::new();
     let d = &snapshot.game.detail;
     let s = &snapshot.storefront.summary;
     let b = &snapshot.badges.summary;
 
-    let _ = writeln!(out, "{}", heading(&d.name));
+    let _ = writeln!(out, "{}", heading("At a glance"));
+    let _ = writeln!(out, "  {}", d.name);
     let _ = writeln!(out, "  universe {} · place {}", d.id, d.root_place_id);
     let _ = writeln!(out);
 
@@ -127,18 +159,24 @@ pub fn render(snapshot: &Snapshot) -> String {
     let _ = writeln!(
         out,
         "  {}",
-        dim("this is the summary — the whole snapshot is in --json")
+        dim("--json carries every field behind these numbers")
     );
 
     out
 }
 
-pub async fn run(client: &Client, universe_id: u64, with_places: bool, json: bool) -> Result<()> {
+pub async fn run(
+    client: &Client,
+    universe_id: u64,
+    with_places: bool,
+    summary: bool,
+    json: bool,
+) -> Result<()> {
     let snapshot = collect(client, universe_id, with_places).await?;
-    if json {
-        println!("{}", serde_json::to_string_pretty(&snapshot)?);
-    } else {
-        print!("{}", render(&snapshot));
+    match (json, summary) {
+        (true, _) => println!("{}", serde_json::to_string_pretty(&snapshot)?),
+        (false, true) => print!("{}", render_summary(&snapshot)),
+        (false, false) => print!("{}", render(&snapshot)),
     }
     Ok(())
 }
@@ -300,5 +338,17 @@ mod tests {
         snapshot.captured_at_unix = 1_770_000_000;
 
         insta::assert_snapshot!(render(&snapshot));
+    }
+
+    #[tokio::test]
+    async fn the_summary_rendering_is_stable() {
+        colored::control::set_override(false);
+        let server = one_experience().await;
+        let mut snapshot = collect(&Client::with_base_url(&server.uri()), 1111111111111, false)
+            .await
+            .unwrap();
+        snapshot.captured_at_unix = 1_770_000_000;
+
+        insta::assert_snapshot!(render_summary(&snapshot));
     }
 }

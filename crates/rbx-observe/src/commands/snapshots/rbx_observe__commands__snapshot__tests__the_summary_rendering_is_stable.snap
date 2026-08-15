@@ -1,0 +1,19 @@
+---
+source: crates/rbx-observe/src/commands/snapshot.rs
+expression: render_summary(&snapshot)
+---
+At a glance
+  A Game
+  universe 1111111111111 · place 2222222222222221
+
+  playing now   120
+  visits        45 000
+  favorites     900
+  votes         80 up / 20 down
+  storefront    1 pass(es), 0 product(s) on sale
+  prices        R$ 399 low · R$ 399 median · R$ 399 high
+  badges        1 (5 000 awarded, 30 in the last day)
+  places        1
+  carousel      1 item(s), no preview video
+
+  --json carries every field behind these numbers

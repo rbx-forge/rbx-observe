@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-15
+
+### Changed
+
+- **`snapshot` prints every section** rather than a summary. The command
+  promises everything about one experience and delivered twelve lines, which
+  was a designer's judgement about what a reader wants imposed on a command
+  named for the opposite. `--summary` keeps the short form for whoever does
+  want it, and `--json` is unchanged.
+
 ## [0.2.0] - 2026-08-15
 
 ### Added

@@ -4,6 +4,60 @@ expression: render(&snapshot)
 ---
 A Game
   universe 1111111111111 · place 2222222222222221
+  Group A Studio (33333333333) · rbx-observe group 33333333333
+  https://www.roblox.com/games/2222222222222221
+
+Audience
+  playing now   120
+  visits        45 000
+  favorites     900
+  votes         80 up / 20 down (80% approval)
+
+Shape
+  max players   16
+  genre         -
+  maturity      Minimal
+  age           all ages
+  created       -
+  updated       -
+
+Places
+  2222222222222221  Main (root)
+  rbx-observe places 1111111111111 for published state and live servers
+
+Assets
+  icon          4444444444444442
+  banner        none
+  carousel      1 item(s), no preview video
+  render icons  rbx-observe asset 4444444444444442
+
+Game passes
+      R$ 399  VIP                               pass 5555555555551 · - · icon 4444444444444443
+
+Developer products
+  none
+
+Summary
+  1 pass(es) and 0 product(s) on sale
+  prices        R$ 399 low · R$ 399 median · R$ 399 high
+  render icons  rbx-observe asset 4444444444444443
+
+Badges
+         5 000  Welcome                           +30 today · 80% win · icon none
+
+Summary
+  1 badge(s), 1 enabled
+  5 000 awarded in total · 30 in the last day
+
+Carousel
+  1. image   asset 4444444444444441
+
+  1 image(s), no preview video
+  render icons  rbx-observe asset 4444444444444441
+
+At a glance
+  A Game
+  universe 1111111111111 · place 2222222222222221
 
   playing now   120
   visits        45 000
@@ -15,4 +69,4 @@ A Game
   places        1
   carousel      1 item(s), no preview video
 
-  this is the summary — the whole snapshot is in --json
+  --json carries every field behind these numbers

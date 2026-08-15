@@ -23,8 +23,13 @@ pub struct Media {
 
 pub async fn collect(client: &Client, universe_id: u64) -> Result<Media> {
     let entries = client.media(universe_id).await?;
+    Ok(from_entries(universe_id, entries))
+}
 
-    Ok(Media {
+/// For a caller that already holds the carousel — `snapshot` does, through
+/// `game` — so the same entries are not fetched twice to be classified once.
+pub fn from_entries(universe_id: u64, entries: Vec<MediaEntry>) -> Media {
+    Media {
         universe_id,
         image_asset_ids: entries
             .iter()
@@ -33,7 +38,7 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Media> {
             .collect(),
         has_preview_video: entries.iter().any(MediaEntry::is_video),
         entries,
-    })
+    }
 }
 
 pub fn render(media: &Media) -> String {

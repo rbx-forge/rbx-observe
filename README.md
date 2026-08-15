@@ -17,7 +17,7 @@ rbx-observe asset <asset-id> --size 1024x1024
 No API key. No cookie. No account. Everything it reads is what a logged-out
 visitor sees.
 
-> **Status: early (0.2.0).** Nine commands, tested against recorded response
+> **Status: early (0.3.0).** Nine commands, tested against recorded response
 > shapes. Field names in `--json` can still move before 1.0.
 
 ## What it is for
@@ -62,7 +62,7 @@ With [Rokit](https://github.com/rojo-rbx/rokit), in your project's
 
 ```toml
 [tools]
-rbx-observe = "rbx-forge/rbx-observe@0.2.0"
+rbx-observe = "rbx-forge/rbx-observe@0.3.0"
 ```
 
 then `rokit install`. Or add it to whatever you have open:
@@ -91,7 +91,7 @@ cargo build --release
 | Command | What it reports |
 | --- | --- |
 | `rbx-observe charts` | Roblox's own rankings — top playing, top earning, up-and-coming, and the fourteen trending-by-category sorts. The command that hands out universe ids |
-| `rbx-observe snapshot <target>` | Every section above in one JSON document, timestamped — the artifact to keep and compare later |
+| `rbx-observe snapshot <target>` | Every section below in one run, and with `--json` one timestamped document — the artifact to keep and compare later |
 | `rbx-observe game <target>` | Description, players, visits, favorites, votes, genre, maturity label and content descriptors, every place in the universe, icon and banner asset ids, carousel size, preview video |
 | `rbx-observe storefront <target>` | Game passes and developer products: prices, ids, icon asset ids, and the low/median/high of what is actually on sale |
 | `rbx-observe badges <target>` | Every badge with total awards, awards in the last day, win rate and icon asset id, most-awarded first |
