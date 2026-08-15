@@ -1,50 +1,101 @@
 # rbx-observe
 
 Read the **public** storefront of a Roblox experience: passes, developer
-products, prices, badges, icons, metadata, and how often any of it changes.
+products, prices, badges, carousel screenshots, and the asset ids behind all of
+it.
 
-> **Status: skeleton.** The repository exists, the CI is wired, and nothing is
-> implemented yet. Every subcommand currently fails saying so. Watch the
-> tracker rather than the tags.
+```sh
+rbx-observe game https://www.roblox.com/games/2222222222222221/Sandbox Frontier
+rbx-observe storefront 1111111111111
+rbx-observe badges 1111111111111 --json
+rbx-observe media 1111111111111
+```
+
+No API key. No cookie. No account. Everything it reads is what a logged-out
+visitor sees.
+
+> **Status: early.** Four commands work and are tested. There is no release
+> yet — build it from source (below). Field names in `--json` can still move.
 
 ## What it is for
 
 Market research on a category you are shipping into. What do comparable
-experiences sell, at what prices, how often do they change them, what does
-their badge cadence look like. All of it is information any player can see by
-opening the experience's page — this tool reads it systematically instead of by
-hand.
+experiences sell, at what prices, how many badges do they hand out and how
+often, does their page open on a video. All of it is public information; this
+reads it systematically instead of by hand.
+
+The asset ids are the part you cannot get by looking. `rbx-observe` resolves
+the icon, the banner and every carousel screenshot down to permanent asset ids
+with their render URLs, which is what makes a storefront comparable across
+weeks rather than a screenshot you took once.
 
 ## The boundary, which does not move
 
 **Game-level, aggregate, public data only. Never person-level.**
 
-- No player lists, no account tracking, no per-user history, no join/leave
-  telemetry, nothing keyed to a person.
-- Polite rate limiting, and no "mirror the whole catalog" mode. This asks about
-  a handful of experiences you name, at a pace a human could roughly sustain.
+- No player lists, no account tracking, no per-user history, nothing keyed to a
+  person. `groups.roblox.com` would hand over a group's owner and every member
+  of every rank; it is deliberately not used, and
+  [docs/endpoints.md](./docs/endpoints.md) says so where somebody would look to
+  add it.
+- Polite rate limiting: paced requests that widen on every 429, and no "mirror
+  the whole catalog" mode. It asks about experiences you name, one at a time.
+- No credential of any kind, which is the same constraint from the other side:
+  everything it reads is public, so nothing it reads is yours to protect.
 
-That line is what separates market research from surveillance. It is a design
+That line separates market research from surveillance. It is a design
 constraint, not a policy waiting to be relaxed: a feature request that crosses
-it is declined regardless of how it is framed. No credential of any kind is
-needed to run this tool, and that is the same constraint seen from the other
-side — everything it reads is public, so nothing it reads is yours to protect.
+it is declined regardless of how it is framed.
+
+## Install
+
+No release yet. From source, with Rust 1.88 or newer:
+
+```sh
+git clone https://github.com/rbx-forge/rbx-observe
+cd rbx-observe
+cargo build --release
+./target/release/rbx-observe game 1111111111111
+```
+
+## Commands
+
+| Command | What it reports |
+| --- | --- |
+| `rbx-observe game <target>` | Players, visits, favorites, votes, genre, dates, icon and banner asset ids, carousel size, preview video |
+| `rbx-observe storefront <target>` | Game passes and developer products: prices, ids, icon asset ids, and the low/median/high of what is actually on sale |
+| `rbx-observe badges <target>` | Every badge with total awards, awards in the last day, win rate and icon asset id, most-awarded first |
+| `rbx-observe media <target>` | Carousel screenshots as permanent asset ids, with the preview video if there is one |
+
+`<target>` is a universe id, a place id with `--place`, or a game URL. `--json`
+on any of them prints the same data machine-readably.
+
+Full descriptions in [docs/commands.md](./docs/commands.md); every endpoint,
+its traps and the rate-limiting model in
+[docs/endpoints.md](./docs/endpoints.md).
+
+## Three numbering spaces
+
+Universe ids, place ids and asset ids are different numbers for different
+things and none of them is recognisable by looking at it. A game URL carries a
+**place** id; nearly every endpoint takes a **universe** id.
+
+Getting it wrong does not fail loudly — `economy.roblox.com` answers `200` with
+somebody else's asset when handed a universe id. So `rbx-observe` converts once
+at the entry point, and refuses any place-asset response that is not actually a
+Place. That guard has its own test.
 
 ## Relationship to rbx-cli
 
 [`rbx-cli`](https://github.com/rbx-forge/rbx-cli) reconciles **your** universe
 against **your** declared configuration. It carries a minimal
-`rbx shop observe` that reads a third party's storefront and can write it out
-in `rbxshop.toml` format — useful, but a different product growing inside the
+`rbx shop observe` that reads a third party's storefront and writes it out in
+`rbxshop.toml` format — useful, but a different product growing inside the
 wrong tool.
 
-This repository is where that idea gets to grow. When it is usable, `rbx-cli`
+This repository is where that idea grows. When it is usable enough, rbx-cli
 decides whether to keep its short version as a convenience or point at this one
 ([rbx-cli#48](https://github.com/rbx-forge/rbx-cli/issues/48)).
-
-## Install
-
-Nothing to install yet. When there is, it will be a Rokit tool like its sibling.
 
 ## Maintenance
 

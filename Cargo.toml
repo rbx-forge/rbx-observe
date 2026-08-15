@@ -15,6 +15,16 @@ repository = "https://github.com/rbx-forge/rbx-observe"
 [workspace.dependencies]
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
+colored = "2"
+reqwest = { version = "0.12", features = ["json", "gzip"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Not `features = ["full"]`. There is no `tokio::spawn` here: tokio is
+# reqwest's runtime, plus `macros` for `#[tokio::main]`/`#[tokio::test]`,
+# `time` for retry backoff and request pacing, and `sync` for the pacer's
+# mutex. Adding one back should be a considered one-line change.
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync"] }
+wiremock = "0.6"
 
 [workspace.lints.rust]
 # Same posture as rbx-cli: an unused item is either wired up or deleted, and
