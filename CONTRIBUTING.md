@@ -23,8 +23,7 @@ rather than the live API.
 
 ## Conventions
 
-Same house style as [rbx-cli](https://github.com/rbx-forge/rbx-cli), because
-the same person maintains both:
+House style:
 
 - `main.rs` / `lib.rs` holds the clap surface and dispatch, `api/` holds one
   method per endpoint, `commands/` holds the logic.
@@ -89,9 +88,8 @@ with the notice; GPL-family sources are not compatible and will be declined.
 
 ## Cutting a release
 
-The workspace version is `0.0.0` until the first one, and `--version` prints
-whatever is in the manifest — not the tag — so the bump is step one, not an
-afterthought.
+`--version` prints whatever is in the manifest, not the tag, so the bump is
+step one rather than an afterthought.
 
 1. Bump `[workspace.package].version` in the root `Cargo.toml`, then
    `cargo check` to refresh `Cargo.lock`.
@@ -103,9 +101,10 @@ afterthought.
    **The `-a` is not optional.** `--follow-tags` pushes annotated tags only, so
    a plain `git tag vX.Y.Z` is created locally, silently skipped by the push,
    and the release workflow never fires.
-4. `release.yml` builds the three targets and opens a **draft** release. Read
-   the notes and the asset list, then publish it by hand — a published release
-   is what every `rokit.toml` in the world resolves against.
+4. `release.yml` builds the three targets, zips the bare binary of each with a
+   `SHA256SUMS`, and publishes the release. Not a draft: Rokit resolves against
+   the releases API, which does not show drafts, so a draft is indistinguishable
+   from no release for every install command in the README.
 
 ## Security
 

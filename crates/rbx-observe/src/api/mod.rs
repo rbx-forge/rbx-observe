@@ -95,9 +95,8 @@ impl Client {
     }
 
     /// Points every host at one mock server and removes both the pacing and
-    /// the backoff. The standard test-injection idiom in the sibling project,
-    /// kept identical here: one way to inject a host, and it cannot leak into
-    /// a release build.
+    /// the backoff. One way to inject a host, and `#[cfg(test)]` keeps it out
+    /// of a release build.
     #[cfg(test)]
     pub fn with_base_url(base: &str) -> Self {
         Self {

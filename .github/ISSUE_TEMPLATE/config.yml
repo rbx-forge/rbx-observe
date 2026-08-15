@@ -6,6 +6,3 @@ contact_links:
   - name: The boundary
     url: https://github.com/rbx-forge/rbx-observe#the-boundary-which-does-not-move
     about: Game-level public data only, never person-level. Read before requesting a feature.
-  - name: rbx-cli
-    url: https://github.com/rbx-forge/rbx-cli
-    about: Managing your own universe rather than observing others? That's the other tool.

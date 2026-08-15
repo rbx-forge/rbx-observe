@@ -4,9 +4,8 @@
 //! of them into something you can open or download, in one batched call.
 //!
 //! It resolves the **rendered** image. The original uploaded file lives behind
-//! `assetdelivery.roblox.com`, which answers 401 without a session — that is
-//! `rbx download`'s job in the sibling project, and it is why this tool stops
-//! at the render.
+//! `assetdelivery.roblox.com`, which answers 401 without a session — fetching
+//! that needs a credential, so this tool stops at the render.
 
 use std::fmt::Write;
 

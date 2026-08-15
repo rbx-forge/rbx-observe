@@ -15,5 +15,5 @@ pre-commit:
       run: cargo clippy --workspace --all-targets -- -D warnings
       fail_text: "clippy found warnings. Fix them, or run `cargo clippy --fix` for auto-fixable ones."
 
-# commit-msg hook intentionally omitted, as in rbx-cli: Conventional Commits is
-# kept by discipline, and the changelog is written by hand at release time.
+# commit-msg hook intentionally omitted: Conventional Commits is kept by
+# discipline, and the changelog is written by hand at release time.

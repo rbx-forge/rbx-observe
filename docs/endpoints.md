@@ -260,8 +260,8 @@ path segment varies by asset type (`/420/420/Image/Png/noFilter` versus
 `/420/420/GameIcon9/Png/noFilter`). The call is mandatory.
 
 This resolves the *rendered* image. The original uploaded file lives behind
-`assetdelivery.roblox.com`, which answers 401 anonymously — that is what
-`rbx download` in the sibling project needs a credential for.
+`assetdelivery.roblox.com`, which answers 401 anonymously: fetching it needs a
+credential, which puts it outside this tool.
 
 ## Discovery rankings
 

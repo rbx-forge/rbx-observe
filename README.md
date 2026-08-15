@@ -122,18 +122,6 @@ somebody else's asset when handed a universe id. So `rbx-observe` converts once
 at the entry point, and refuses any place-asset response that is not actually a
 Place. That guard has its own test.
 
-## Relationship to rbx-cli
-
-[`rbx-cli`](https://github.com/rbx-forge/rbx-cli) reconciles **your** universe
-against **your** declared configuration. It carries a minimal
-`rbx shop observe` that reads a third party's storefront and writes it out in
-`rbxshop.toml` format — useful, but a different product growing inside the
-wrong tool.
-
-This repository is where that idea grows. When it is usable enough, rbx-cli
-decides whether to keep its short version as a convenience or point at this one
-([rbx-cli#48](https://github.com/rbx-forge/rbx-cli/issues/48)).
-
 ## Maintenance
 
 One maintainer, maintained on my schedule. Issues are triaged, not promised.

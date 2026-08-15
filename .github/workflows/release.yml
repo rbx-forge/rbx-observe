@@ -3,8 +3,7 @@ name: Release
 # Fires on an annotated `v*` tag. `git tag -a vX.Y.Z -m "vX.Y.Z" && git push
 # origin main --follow-tags` — a lightweight tag is skipped by --follow-tags,
 # this workflow never runs, and the result is a repository whose install
-# instructions all fail. That is not hypothetical: the sibling project shipped
-# exactly that state.
+# instructions all fail, which is a state real projects ship by accident.
 on:
   push:
     tags: ["v*"]
