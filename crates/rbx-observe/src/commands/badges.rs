@@ -5,7 +5,7 @@ use serde::Serialize;
 
 use crate::api::badges::Badge;
 use crate::api::Client;
-use crate::render::{asset_url, date, dim, heading, thousands};
+use crate::render::{asset_hint, dim, heading, thousands};
 
 #[derive(Debug, Serialize)]
 pub struct Badges {
@@ -57,6 +57,10 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Badges> {
     })
 }
 
+/// Width of the name column before the dim stats block. Matches the
+/// storefront so the two commands read as one tool.
+const NAME_WIDTH: usize = 30;
+
 pub fn render(report: &Badges) {
     println!("{}", heading("Badges"));
     if report.badges.is_empty() {
@@ -65,23 +69,16 @@ pub fn render(report: &Badges) {
 
     for badge in &report.badges {
         let state = if badge.enabled { "" } else { " (disabled)" };
-        println!("  {}{}", badge.name, state);
         println!(
-            "    {}",
+            "  {:>12}  {:<NAME_WIDTH$}  {}",
+            thousands(badge.statistics.awarded_count),
+            format!("{}{}", badge.name, state),
             dim(&format!(
-                "{} awarded · {} in the last day · {:.1}% win rate",
-                thousands(badge.statistics.awarded_count),
+                "+{} today · {:.0}% win · icon {}",
                 thousands(badge.statistics.past_day_awarded_count),
-                badge.statistics.win_rate_percentage * 100.0
-            ))
-        );
-        println!(
-            "    {}",
-            dim(&format!(
-                "created {} · icon {}",
-                date(badge.created.as_deref()),
+                badge.statistics.win_rate_percentage * 100.0,
                 match badge.icon_image_id {
-                    Some(id) => format!("{id} ({})", asset_url(id)),
+                    Some(id) => id.to_string(),
                     None => "none".to_string(),
                 }
             ))
@@ -97,6 +94,15 @@ pub fn render(report: &Badges) {
         thousands(s.awarded_total),
         thousands(s.awarded_past_day)
     );
+
+    let icons: Vec<u64> = report
+        .badges
+        .iter()
+        .filter_map(|badge| badge.icon_image_id)
+        .collect();
+    if let Some(hint) = asset_hint(&icons) {
+        println!("  {}", dim(&hint));
+    }
 }
 
 pub async fn run(client: &Client, universe_id: u64, json: bool) -> Result<()> {

@@ -6,6 +6,7 @@
 
 pub mod badges;
 pub mod economy;
+pub mod explore;
 pub mod games;
 pub mod groups;
 pub mod maturity;

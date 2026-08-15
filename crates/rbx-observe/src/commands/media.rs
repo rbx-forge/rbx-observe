@@ -9,7 +9,7 @@ use serde::Serialize;
 
 use crate::api::games::MediaEntry;
 use crate::api::Client;
-use crate::render::{asset_url, dim, heading};
+use crate::render::{asset_hint, dim, heading};
 
 #[derive(Debug, Serialize)]
 pub struct Media {
@@ -55,10 +55,7 @@ pub fn render(media: &Media) {
         }
 
         match entry.image_id {
-            Some(id) => {
-                println!("  {position}. image   asset {id}");
-                println!("     {}", dim(&asset_url(id)));
-            }
+            Some(id) => println!("  {position}. image   asset {id}"),
             None => println!("  {position}. image   {}", dim("no asset id")),
         }
         if let Some(alt) = entry.alt_text.as_deref().filter(|text| !text.is_empty()) {
@@ -67,6 +64,9 @@ pub fn render(media: &Media) {
     }
 
     println!();
+    if let Some(hint) = asset_hint(&media.image_asset_ids) {
+        println!("  {}", dim(&hint));
+    }
     println!(
         "  {} image(s), {}",
         media.image_asset_ids.len(),

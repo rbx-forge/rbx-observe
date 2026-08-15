@@ -5,6 +5,7 @@ products, prices, badges, carousel screenshots, and the asset ids behind all of
 it.
 
 ```sh
+rbx-observe charts --sort top-earning
 rbx-observe game https://www.roblox.com/games/2222222222222221/Sandbox Frontier
 rbx-observe storefront 1111111111111
 rbx-observe badges 1111111111111 --json
@@ -15,8 +16,9 @@ rbx-observe asset 4444444444444441 --size 1024x1024
 No API key. No cookie. No account. Everything it reads is what a logged-out
 visitor sees.
 
-> **Status: early.** Four commands work and are tested. There is no release
-> yet — build it from source (below). Field names in `--json` can still move.
+> **Status: early.** Eight commands work and are tested against recorded
+> responses. There is no release yet — build it from source (below). Field
+> names in `--json` can still move.
 
 ## What it is for
 
@@ -26,9 +28,10 @@ often, does their page open on a video. All of it is public information; this
 reads it systematically instead of by hand.
 
 The asset ids are the part you cannot get by looking. `rbx-observe` resolves
-the icon, the banner and every carousel screenshot down to permanent asset ids
-with their render URLs, which is what makes a storefront comparable across
-weeks rather than a screenshot you took once.
+the icon, the banner and every carousel screenshot down to permanent asset ids,
+which is what makes a storefront comparable across weeks rather than a
+screenshot you took once. `rbx-observe asset` turns any of them back into an
+image.
 
 ## The boundary, which does not move
 
@@ -67,6 +70,7 @@ cargo build --release
 
 | Command | What it reports |
 | --- | --- |
+| `rbx-observe charts` | Roblox's own rankings — top playing, top earning, up-and-coming, and the fourteen trending-by-category sorts. The command that hands out universe ids |
 | `rbx-observe game <target>` | Description, players, visits, favorites, votes, genre, maturity label and content descriptors, every place in the universe, icon and banner asset ids, carousel size, preview video |
 | `rbx-observe storefront <target>` | Game passes and developer products: prices, ids, icon asset ids, and the low/median/high of what is actually on sale |
 | `rbx-observe badges <target>` | Every badge with total awards, awards in the last day, win rate and icon asset id, most-awarded first |

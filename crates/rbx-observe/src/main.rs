@@ -91,6 +91,26 @@ enum Command {
         place: bool,
     },
 
+    /// What Roblox is pushing right now: its own rankings.
+    ///
+    /// The discovery command — every other one needs a universe id, this one
+    /// hands them out.
+    Charts {
+        /// One sort only, by id (`top-playing-now`, `top-earning`,
+        /// `up-and-coming`, `trending-in-<category>`, …).
+        #[arg(long)]
+        sort: Option<String>,
+
+        /// One category only, matching the suffix of a `trending-in-…` sort
+        /// (`obby-and-platformer`, `survival`, …). Roblox's real taxonomy.
+        #[arg(long)]
+        category: Option<String>,
+
+        /// Rows per sort in the human rendering. `--json` is never truncated.
+        #[arg(long, default_value_t = 10)]
+        limit: usize,
+    },
+
     /// A studio and the games it publishes.
     ///
     /// There is no user-keyed equivalent: a catalog keyed to an individual
@@ -135,7 +155,9 @@ impl Command {
             | Command::Badges { target, place }
             | Command::Media { target, place }
             | Command::Places { target, place } => (target, *place),
-            Command::Group { .. } | Command::Asset { .. } => return Ok(None),
+            Command::Charts { .. } | Command::Group { .. } | Command::Asset { .. } => {
+                return Ok(None)
+            }
         };
         Target::parse(raw, place).map(Some)
     }
@@ -161,6 +183,20 @@ async fn main() -> Result<()> {
         Command::Badges { .. } => commands::badges::run(&client, universe_id, cli.json).await,
         Command::Media { .. } => commands::media::run(&client, universe_id, cli.json).await,
         Command::Places { .. } => commands::places::run(&client, universe_id, cli.json).await,
+        Command::Charts {
+            sort,
+            category,
+            limit,
+        } => {
+            commands::charts::run(
+                &client,
+                sort.as_deref(),
+                category.as_deref(),
+                limit,
+                cli.json,
+            )
+            .await
+        }
         Command::Group { group_id, all } => {
             commands::group::run(&client, group_id, all, cli.json).await
         }

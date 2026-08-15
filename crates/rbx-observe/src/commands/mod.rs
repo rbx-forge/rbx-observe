@@ -7,6 +7,7 @@
 
 pub mod asset;
 pub mod badges;
+pub mod charts;
 pub mod game;
 pub mod group;
 pub mod media;

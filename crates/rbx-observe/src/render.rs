@@ -57,10 +57,37 @@ pub fn dim(text: &str) -> String {
     text.dimmed().to_string()
 }
 
-/// An asset id is only useful if you can look at it, so it is always printed
-/// with the URL that renders it.
-pub fn asset_url(asset_id: u64) -> String {
-    format!("https://thumbnails.roblox.com/v1/assets?assetIds={asset_id}&size=420x420&format=Png")
+/// One line, at the end of a section, saying how to turn the ids just printed
+/// into images.
+///
+/// Printing a URL next to every id was the previous shape and it was the worst
+/// of both: long, repetitive, and not even an image link — the CDN URL cannot
+/// be built from an id (opaque hash, and the path segment varies by asset
+/// type), so what got printed was the API call, not the picture. Ids here, one
+/// command to resolve them.
+pub fn asset_hint(ids: &[u64]) -> Option<String> {
+    let mut unique: Vec<u64> = Vec::new();
+    for id in ids {
+        if !unique.contains(id) {
+            unique.push(*id);
+        }
+    }
+    if unique.is_empty() {
+        return None;
+    }
+
+    // Long id lists wrap and stop being copy-pasteable; three is enough to
+    // show the shape of the command.
+    const SHOWN: usize = 3;
+    let listed = unique
+        .iter()
+        .take(SHOWN)
+        .map(u64::to_string)
+        .collect::<Vec<_>>()
+        .join(" ");
+    let more = if unique.len() > SHOWN { " …" } else { "" };
+
+    Some(format!("render icons  rbx-observe asset {listed}{more}"))
 }
 
 /// `2026-07-03T17:35:39.839Z` → `2026-07-03`. Nothing here needs the clock
@@ -91,6 +118,18 @@ mod tests {
         assert_eq!(price(None, true), "free");
         assert_eq!(price(Some(49), false), "R$ 49 (off sale)");
         assert_eq!(price(None, false), "off sale");
+    }
+
+    #[test]
+    fn the_asset_hint_dedupes_and_stops_at_three() {
+        assert_eq!(asset_hint(&[]), None);
+        // A storefront where every product shares one icon should not print
+        // that id eleven times.
+        assert_eq!(
+            asset_hint(&[7, 7, 7]).unwrap(),
+            "render icons  rbx-observe asset 7"
+        );
+        assert!(asset_hint(&[1, 2, 3, 4]).unwrap().ends_with("1 2 3 …"));
     }
 
     #[test]

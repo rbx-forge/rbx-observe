@@ -1,6 +1,6 @@
 # Commands
 
-Seven commands. Five of them share one shape:
+Eight commands. Five of them share one shape:
 
 ```sh
 rbx-observe <command> <target> [--place] [--json]
@@ -90,6 +90,39 @@ developer set one, and the preview video if there is one. Video entries are
 excluded from the screenshot list: they carry a poster-frame `imageId` that
 would otherwise inflate every carousel with a video by one.
 
+## `charts`
+
+What Roblox is pushing right now. **The discovery command** — every other one
+needs a universe id, this one hands them out.
+
+```sh
+rbx-observe charts                              # every sort, 10 rows each
+rbx-observe charts --sort top-earning --limit 25
+rbx-observe charts --category obby-and-platformer
+```
+
+```
+Top Earning
+  top-earning · 94 games
+    1.   376 346  ⚔️ Sea Trials                      universe 1111111111115 · RPG
+    2.   105 347  Warrior Saga [Warrior Saga🐉]   universe 1111111111116 · Strategy
+```
+
+Roughly 26 rankings over 5 pages. The obvious ones are on page one
+(`top-trending`, `up-and-coming`, `top-playing-now`); the ones worth the walk
+are further in — **`top-earning` is a revenue proxy Roblox publishes for
+free**, and the fourteen `trending-in-<category>` sorts are its real genre
+taxonomy, which the `genre` field on a game does not give you.
+
+`--category` matches the suffix of those sort ids. Paid placements are marked
+`[sponsored]`: a sponsored row is an ad, not a measurement.
+
+`--limit` truncates the **rendering** only; `--json` always carries every game
+Roblox returned.
+
+A ranking read once is a snapshot. Tracking one over time is a different tool
+with a database, and this command deliberately is not that.
+
 ## `places`
 
 Every place in the universe, with what an anonymous caller can work out about
@@ -174,6 +207,20 @@ An id Roblox omits from the response entirely still gets a row, marked
 
 This resolves the rendered image, not the original uploaded file: that one is
 behind `assetdelivery.roblox.com`, which requires a session.
+
+## Reading the output
+
+One line per item, everywhere: a right-aligned number (price, awards, players),
+the name, then ids in grey. **No URLs.** An asset id is printed as an id and
+`rbx-observe asset` turns it into an image — the CDN URL cannot be built from
+an id anyway (opaque hash, and the path segment varies by asset type), so a URL
+printed on every row would have been the API call rather than the picture.
+
+Each listing ends with the command that renders its icons:
+
+```
+  render icons  rbx-observe asset 4444444444444445 4444444444444446 4444444444444447 …
+```
 
 ## Exit codes
 

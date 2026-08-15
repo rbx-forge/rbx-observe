@@ -5,7 +5,7 @@ use serde::Serialize;
 
 use crate::api::monetization::{DeveloperProduct, GamePass};
 use crate::api::Client;
-use crate::render::{asset_url, date, dim, heading, price, thousands};
+use crate::render::{asset_hint, date, dim, heading, price, thousands};
 
 #[derive(Debug, Serialize)]
 pub struct Storefront {
@@ -86,6 +86,11 @@ fn sort_key(price: Option<u64>, for_sale: bool) -> (bool, std::cmp::Reverse<u64>
     (!for_sale, std::cmp::Reverse(price.unwrap_or(0)))
 }
 
+/// Width of the name column before the dim id block. Long names push the ids
+/// right rather than being cut: a truncated product name is worse than a
+/// ragged column.
+const NAME_WIDTH: usize = 30;
+
 pub fn render(store: &Storefront) {
     println!("{}", heading("Game passes"));
     if store.game_passes.is_empty() {
@@ -93,17 +98,14 @@ pub fn render(store: &Storefront) {
     }
     for pass in &store.game_passes {
         println!(
-            "  {:>10}  {}",
+            "  {:>10}  {:<NAME_WIDTH$}  {}",
             price(pass.price, pass.is_for_sale),
-            pass.name
-        );
-        println!(
-            "              {}",
+            pass.name,
             dim(&format!(
-                "id {} · created {} · icon {}",
+                "pass {} · {} · icon {}",
                 pass.id,
                 date(pass.created.as_deref()),
-                icon(pass.display_icon_image_asset_id)
+                id_or_none(pass.display_icon_image_asset_id)
             ))
         );
     }
@@ -115,17 +117,14 @@ pub fn render(store: &Storefront) {
     }
     for product in &store.developer_products {
         println!(
-            "  {:>10}  {}",
+            "  {:>10}  {:<NAME_WIDTH$}  {}",
             price(product.price_in_robux, product.is_for_sale),
-            product.name
-        );
-        println!(
-            "              {}",
+            product.name,
             dim(&format!(
-                "id {} · created {} · icon {}",
+                "product {} · {} · icon {}",
                 product.developer_product_id,
                 date(product.created.as_deref()),
-                icon(product.icon_image_asset_id)
+                id_or_none(product.icon_image_asset_id)
             ))
         );
     }
@@ -145,15 +144,26 @@ pub fn render(store: &Storefront) {
             thousands(max)
         );
     }
-    println!(
-        "  {}",
-        dim("icon asset ids render through thumbnails.roblox.com — see docs/endpoints.md")
-    );
+
+    let icons: Vec<u64> = store
+        .game_passes
+        .iter()
+        .filter_map(|pass| pass.display_icon_image_asset_id)
+        .chain(
+            store
+                .developer_products
+                .iter()
+                .filter_map(|product| product.icon_image_asset_id),
+        )
+        .collect();
+    if let Some(hint) = asset_hint(&icons) {
+        println!("  {}", dim(&hint));
+    }
 }
 
-fn icon(asset_id: Option<u64>) -> String {
+fn id_or_none(asset_id: Option<u64>) -> String {
     match asset_id {
-        Some(id) => format!("{id} ({})", asset_url(id)),
+        Some(id) => id.to_string(),
         None => "none".to_string(),
     }
 }

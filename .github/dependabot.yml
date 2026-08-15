@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # GitHub Actions only, and grouped into one PR a month.
+  #
+  # Cargo updates are deliberately off: a lockfile bump PR every week is noise
+  # on a project this size, and CVEs are covered by Dependabot **security**
+  # alerts, which open a PR only when an advisory actually hits Cargo.lock.
+  # Those are enabled in the repository settings, not here.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+      time: "06:00"
+      timezone: Europe/Paris
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "chore"

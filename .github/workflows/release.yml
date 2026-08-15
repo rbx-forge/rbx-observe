@@ -1,0 +1,82 @@
+name: Release
+
+# Fires on an annotated `v*` tag. `git tag -a vX.Y.Z -m "vX.Y.Z" && git push
+# origin main --follow-tags` — a lightweight tag is skipped by --follow-tags
+# and this workflow never runs, which is the classic way to publish nothing.
+on:
+  push:
+    tags: ["v*"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+          # Apple Silicon only: the Intel Mac target would be a third runner
+          # for an audience that is now small, and can be added the day
+          # somebody asks.
+          - target: aarch64-apple-darwin
+            os: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@258712b0b7b1ddf8bddc9fc3b0faca682b2736c3 # v2
+      - run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Package
+        shell: bash
+        run: |
+          set -euo pipefail
+          staging="rbx-observe-${{ github.ref_name }}-${{ matrix.target }}"
+          mkdir "$staging"
+          if [ -f "target/${{ matrix.target }}/release/rbx-observe.exe" ]; then
+            cp "target/${{ matrix.target }}/release/rbx-observe.exe" "$staging/"
+          else
+            cp "target/${{ matrix.target }}/release/rbx-observe" "$staging/"
+          fi
+          cp README.md LICENSE THIRD-PARTY-NOTICES.md "$staging/" 2>/dev/null || \
+            cp README.md LICENSE "$staging/"
+          # Zip everywhere, including Linux: Rokit reads zips, and one archive
+          # format means one extraction path to get wrong.
+          7z a "$staging.zip" "$staging" >/dev/null || zip -r "$staging.zip" "$staging"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ matrix.target }}
+          path: "*.zip"
+
+  publish:
+    name: Publish
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          merge-multiple: true
+      - name: Checksums
+        run: sha256sum *.zip > SHA256SUMS
+      # The release is a draft: a human reads the notes and the asset list
+      # before anything is downloadable, because a published release is what
+      # every rokit.toml in the world resolves against.
+      - uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: |
+            *.zip
+            SHA256SUMS

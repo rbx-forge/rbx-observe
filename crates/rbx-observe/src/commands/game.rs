@@ -8,7 +8,7 @@ use crate::api::maturity::Maturity;
 use crate::api::places::Place;
 use crate::api::thumbnails::Images;
 use crate::api::Client;
-use crate::render::{asset_url, block, date, dim, heading, thousands, truncate};
+use crate::render::{asset_hint, block, date, dim, heading, thousands, truncate};
 
 #[derive(Debug, Serialize)]
 pub struct Game {
@@ -119,24 +119,21 @@ pub fn render(game: &Game) {
         }
         println!(
             "  {}",
-            dim("public/private per place is not readable without a session")
+            dim(&format!(
+                "rbx-observe places {} for published state and live servers",
+                d.id
+            ))
         );
         println!();
     }
 
     println!("{}", heading("Assets"));
     match game.icon_asset_id {
-        Some(id) => println!(
-            "  icon          {id}\n                {}",
-            dim(&asset_url(id))
-        ),
+        Some(id) => println!("  icon          {id}"),
         None => println!("  icon          {}", dim("asset id unavailable")),
     }
     match game.images.banner_asset_id {
-        Some(id) => println!(
-            "  banner        {id}\n                {}",
-            dim(&asset_url(id))
-        ),
+        Some(id) => println!("  banner        {id}"),
         None => println!("  banner        {}", dim("none")),
     }
     println!(
@@ -148,6 +145,14 @@ pub fn render(game: &Game) {
             "no preview video"
         }
     );
+
+    let ids: Vec<u64> = [game.icon_asset_id, game.images.banner_asset_id]
+        .into_iter()
+        .flatten()
+        .collect();
+    if let Some(hint) = asset_hint(&ids) {
+        println!("  {}", dim(&hint));
+    }
 }
 
 /// Roblox's own taxonomy first: the legacy `genre` field says "All" on the

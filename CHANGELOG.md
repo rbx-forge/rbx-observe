@@ -11,7 +11,11 @@ No release yet. Build from source.
 
 ### Added
 
-- **Seven read commands**: `game`, `storefront`, `badges`, `media`, `places` —
+- **`charts`**: Roblox's own discovery rankings, including `top-earning` and
+  the fourteen `trending-in-<category>` sorts that are its real genre taxonomy.
+  The only command that needs no id — it is where the universe ids come from.
+  `--sort`, `--category`, `--limit` (rendering only; `--json` stays complete).
+- **Eight read commands**: `game`, `storefront`, `badges`, `media`, `places` —
   each taking a universe id, a place id (`--place`) or a roblox.com game URL —
   plus `group` and `asset`. All of them support `--json`.
 - **`places`**: every place in a universe, whether each looks published or
@@ -33,6 +37,10 @@ No release yet. Build from source.
 - **`group`**: a studio, its member count and entry policy, and every public
   game it publishes, most-visited first. Its owner, its shout and its
   membership roster are in the payloads and are deliberately not read.
+- **Output carries ids, not URLs.** A URL on every row was long, repetitive
+  and not even an image link: the CDN URL cannot be built from an asset id, so
+  what was printed was the API call. Listings are now one line per item and end
+  with a single `rbx-observe asset <ids…>` hint.
 - **`asset`**: any asset id resolved to the CDN URL that renders it, batched,
   with `--size` validated before the request. A URL is only reported for a
   `Completed` render — Roblox answers a bad id with a placeholder image and no
@@ -40,8 +48,7 @@ No release yet. Build from source.
   a wrong id.
 - **Asset ids everywhere they exist.** Icon (through the place asset, the only
   public route to an icon's asset id), page banner, every carousel screenshot,
-  and the icon of every pass, product and badge — each printed with the URL
-  that renders it.
+  and the icon of every pass, product and badge.
 - **The `AssetTypeId` guard.** `economy.roblox.com/v2/assets/{id}/details`
   answers `200` with an unrelated asset when handed a universe id instead of a
   place id. Any response that is not a Place is refused rather than reported.

@@ -20,6 +20,7 @@ tool.
 | Place asset details | `economy.roblox.com` | **place id** | `api/economy.rs` |
 | Icon and banner images | `thumbnails.roblox.com` | universe id | `api/thumbnails.rs` |
 | Any asset's render URL | `thumbnails.roblox.com` | **asset id** | `api/thumbnails.rs` |
+| Discovery rankings | `apis.roblox.com` | nothing | `api/explore.rs` |
 | Group | `groups.roblox.com` | group id | `api/groups.rs` |
 | A group's games | `games.roblox.com` | group id | `api/groups.rs` |
 
@@ -261,6 +262,32 @@ path segment varies by asset type (`/420/420/Image/Png/noFilter` versus
 This resolves the *rendered* image. The original uploaded file lives behind
 `assetdelivery.roblox.com`, which answers 401 anonymously — that is what
 `rbx download` in the sibling project needs a credential for.
+
+## Discovery rankings
+
+```http
+GET https://apis.roblox.com/explore-api/v1/get-sorts?sessionId={id}&sortsPageToken={token}
+```
+
+The only endpoint here that takes no id and hands them out, which makes it the
+entry point to everything else.
+
+Token pagination. Page one carries six sorts; the remaining pages carry
+`top-earning` (a revenue proxy Roblox publishes for free), `top-rated`,
+`most-popular` and fourteen `trending-in-<category>` rankings — Roblox's real
+genre taxonomy, which the `genre` field on a game does not give you. Roughly 26
+game sorts over 5 pages.
+
+Each game entry carries `universeId`, `rootPlaceId`, `playerCount`, vote
+totals, `genreL1`, `minimumAge`, `contentMaturity` and `isSponsored`. Sponsored
+rows are paid placements, kept and marked rather than dropped.
+
+Page one also opens with a `filters_v5` entry whose `contentType` is `Filters`
+and whose game list is empty: UI furniture, filtered out.
+
+The `sessionId` is required and is **not** authentication — it is how Roblox
+keeps one browsing session's pagination consistent. A fresh `rbx-observe-<ms>`
+per run, carrying nothing identifying.
 
 ## Live servers
 
