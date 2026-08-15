@@ -17,7 +17,7 @@ rbx-observe asset <asset-id> --size 1024x1024
 No API key. No cookie. No account. Everything it reads is what a logged-out
 visitor sees.
 
-> **Status: early (0.1.0).** Nine commands, tested against recorded response
+> **Status: early (0.2.0).** Nine commands, tested against recorded response
 > shapes. Field names in `--json` can still move before 1.0.
 
 ## What it is for
@@ -62,7 +62,7 @@ With [Rokit](https://github.com/rojo-rbx/rokit), in your project's
 
 ```toml
 [tools]
-rbx-observe = "rbx-forge/rbx-observe@0.1.0"
+rbx-observe = "rbx-forge/rbx-observe@0.2.0"
 ```
 
 then `rokit install`. Or add it to whatever you have open:

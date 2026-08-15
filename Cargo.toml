@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/rbx-observe"]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 # Matches rbx-cli's floor rather than being derived from this tree's own
 # dependencies, which are too few to constrain anything yet. Revisit when a
