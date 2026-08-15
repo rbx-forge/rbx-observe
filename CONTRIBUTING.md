@@ -72,6 +72,26 @@ project, say so in the PR and add its notice to a `THIRD-PARTY-NOTICES.md` — a
 doc-comment credit is not a license notice. MIT and Apache-2.0 sources are fine
 with the notice; GPL-family sources are not compatible and will be declined.
 
+## Cutting a release
+
+The workspace version is `0.0.0` until the first one, and `--version` prints
+whatever is in the manifest — not the tag — so the bump is step one, not an
+afterthought.
+
+1. Bump `[workspace.package].version` in the root `Cargo.toml`, then
+   `cargo check` to refresh `Cargo.lock`.
+2. Move the `## [Unreleased]` content to `## [X.Y.Z] - YYYY-MM-DD` in
+   [CHANGELOG.md](./CHANGELOG.md).
+3. Commit, then tag and push:
+   `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin main --follow-tags`
+
+   **The `-a` is not optional.** `--follow-tags` pushes annotated tags only, so
+   a plain `git tag vX.Y.Z` is created locally, silently skipped by the push,
+   and the release workflow never fires.
+4. `release.yml` builds the three targets and opens a **draft** release. Read
+   the notes and the asset list, then publish it by hand — a published release
+   is what every `rokit.toml` in the world resolves against.
+
 ## Security
 
 Vulnerabilities go through [SECURITY.md](./SECURITY.md), never the tracker.

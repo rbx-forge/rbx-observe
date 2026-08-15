@@ -5,7 +5,7 @@ use serde::Serialize;
 
 use crate::api::monetization::{DeveloperProduct, GamePass};
 use crate::api::Client;
-use crate::render::{asset_hint, date, dim, heading, price, thousands};
+use crate::render::{asset_hint, date, dim, heading, price, thousands, NAME_WIDTH};
 
 #[derive(Debug, Serialize)]
 pub struct Storefront {
@@ -85,11 +85,6 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Storefront> {
 fn sort_key(price: Option<u64>, for_sale: bool) -> (bool, std::cmp::Reverse<u64>) {
     (!for_sale, std::cmp::Reverse(price.unwrap_or(0)))
 }
-
-/// Width of the name column before the dim id block. Long names push the ids
-/// right rather than being cut: a truncated product name is worse than a
-/// ragged column.
-const NAME_WIDTH: usize = 30;
 
 pub fn render(store: &Storefront) {
     println!("{}", heading("Game passes"));

@@ -49,6 +49,11 @@ pub fn block(text: &str, indent: &str) -> String {
         .join("\n")
 }
 
+/// Width of the name column in every listing, so storefront, badges and
+/// charts line up as one tool. Long names push the grey id block right rather
+/// than being cut: a truncated product name is worse than a ragged column.
+pub const NAME_WIDTH: usize = 32;
+
 pub fn heading(text: &str) -> String {
     text.bold().to_string()
 }

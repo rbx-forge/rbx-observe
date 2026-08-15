@@ -10,7 +10,7 @@ use serde::Serialize;
 
 use crate::api::explore::Sort;
 use crate::api::Client;
-use crate::render::{dim, heading, thousands};
+use crate::render::{dim, heading, thousands, NAME_WIDTH};
 
 #[derive(Debug, Serialize)]
 pub struct Charts {
@@ -52,10 +52,6 @@ pub async fn collect(
 
     Ok(Charts { sorts, limit })
 }
-
-/// Same column width as the storefront and badge listings, so the three read
-/// as one tool.
-const NAME_WIDTH: usize = 34;
 
 pub fn render(charts: &Charts) {
     for sort in &charts.sorts {

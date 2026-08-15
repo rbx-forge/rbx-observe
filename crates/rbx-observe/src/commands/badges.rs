@@ -5,7 +5,7 @@ use serde::Serialize;
 
 use crate::api::badges::Badge;
 use crate::api::Client;
-use crate::render::{asset_hint, dim, heading, thousands};
+use crate::render::{asset_hint, dim, heading, thousands, NAME_WIDTH};
 
 #[derive(Debug, Serialize)]
 pub struct Badges {
@@ -56,10 +56,6 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Badges> {
         badges,
     })
 }
-
-/// Width of the name column before the dim stats block. Matches the
-/// storefront so the two commands read as one tool.
-const NAME_WIDTH: usize = 30;
 
 pub fn render(report: &Badges) {
     println!("{}", heading("Badges"));
