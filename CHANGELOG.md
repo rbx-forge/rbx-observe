@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`snapshot`**: one experience, one JSON document, one timestamp — the
+  artifact the tool was missing. Comparing a storefront across weeks is the
+  point, and until now it meant running five commands and reconciling five
+  files. It reuses what `game` already fetched rather than asking Roblox twice
+  for the carousel and the place list. `--places` adds the per-place probing,
+  which is opt-in because it costs two unbatchable requests per place.
+
 ## [0.1.0] - 2026-08-15
 
 First release. Installable through Rokit.

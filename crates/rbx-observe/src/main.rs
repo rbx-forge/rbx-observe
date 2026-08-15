@@ -79,6 +79,23 @@ enum Command {
         place: bool,
     },
 
+    /// Everything about one experience, as one document worth keeping.
+    ///
+    /// The summary prints; `--json` carries the whole thing, which is what to
+    /// redirect into a dated file and compare later.
+    Snapshot {
+        /// Universe id, place id, or a roblox.com game URL.
+        target: String,
+        /// Read the number as a place id rather than a universe id.
+        #[arg(long)]
+        place: bool,
+
+        /// Also probe every place: published state and live servers. Two
+        /// requests per place, none of which batch.
+        #[arg(long)]
+        places: bool,
+    },
+
     /// Every place in the universe: whether each looks published, and what is
     /// running on it right now.
     ///
@@ -154,7 +171,8 @@ impl Command {
             | Command::Storefront { target, place }
             | Command::Badges { target, place }
             | Command::Media { target, place }
-            | Command::Places { target, place } => (target, *place),
+            | Command::Places { target, place }
+            | Command::Snapshot { target, place, .. } => (target, *place),
             Command::Charts { .. } | Command::Group { .. } | Command::Asset { .. } => {
                 return Ok(None)
             }
@@ -183,6 +201,9 @@ async fn main() -> Result<()> {
         Command::Badges { .. } => commands::badges::run(&client, universe_id, cli.json).await,
         Command::Media { .. } => commands::media::run(&client, universe_id, cli.json).await,
         Command::Places { .. } => commands::places::run(&client, universe_id, cli.json).await,
+        Command::Snapshot { places, .. } => {
+            commands::snapshot::run(&client, universe_id, places, cli.json).await
+        }
         Command::Charts {
             sort,
             category,

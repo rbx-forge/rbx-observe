@@ -1,6 +1,6 @@
 # Commands
 
-Eight commands. Five of them share one shape:
+Nine commands. Six of them share one shape:
 
 ```sh
 rbx-observe <command> <target> [--place] [--json]
@@ -122,6 +122,33 @@ Roblox returned.
 
 A ranking read once is a snapshot. Tracking one over time is a different tool
 with a database, and this command deliberately is not that.
+
+## `snapshot`
+
+Everything about one experience, as one document.
+
+```sh
+rbx-observe snapshot <universe-id> --json > snapshots/2026-08-15.json
+rbx-observe snapshot <universe-id> --places --json   # slower, see below
+```
+
+The human output is a summary — players, visits, votes, storefront size and
+price band, badge totals, place count, carousel. The **whole** thing is in
+`--json`: the full game detail, every pass and product, every badge, the
+carousel entries, and a `captured_at_unix`.
+
+That timestamp is a number rather than a formatted date on purpose: the file
+name is where a human date belongs, and a snapshot that disagrees with its own
+file name is worse than one carrying an integer.
+
+`--places` adds the per-place published state and live fleet. It costs two
+requests per place and neither batches, so a twenty-place universe roughly
+triples the run.
+
+This is what makes comparison possible: one file per experience per day, and a
+`diff` later tells you what a competitor changed. The tool does not do that
+comparison for you yet — deciding what counts as a change (a price move, yes; a
+visit counter, no) is a conversation to have over real snapshots.
 
 ## `places`
 

@@ -6,6 +6,7 @@ it.
 
 ```sh
 rbx-observe charts --sort top-earning
+rbx-observe snapshot <universe-id> --json > 2026-08-15.json
 rbx-observe game https://www.roblox.com/games/<place-id>/<name>
 rbx-observe storefront <universe-id>
 rbx-observe badges <universe-id> --json
@@ -16,7 +17,7 @@ rbx-observe asset <asset-id> --size 1024x1024
 No API key. No cookie. No account. Everything it reads is what a logged-out
 visitor sees.
 
-> **Status: early (0.1.0).** Eight commands, tested against recorded response
+> **Status: early (0.1.0).** Nine commands, tested against recorded response
 > shapes. Field names in `--json` can still move before 1.0.
 
 ## What it is for
@@ -90,6 +91,7 @@ cargo build --release
 | Command | What it reports |
 | --- | --- |
 | `rbx-observe charts` | Roblox's own rankings — top playing, top earning, up-and-coming, and the fourteen trending-by-category sorts. The command that hands out universe ids |
+| `rbx-observe snapshot <target>` | Every section above in one JSON document, timestamped — the artifact to keep and compare later |
 | `rbx-observe game <target>` | Description, players, visits, favorites, votes, genre, maturity label and content descriptors, every place in the universe, icon and banner asset ids, carousel size, preview video |
 | `rbx-observe storefront <target>` | Game passes and developer products: prices, ids, icon asset ids, and the low/median/high of what is actually on sale |
 | `rbx-observe badges <target>` | Every badge with total awards, awards in the last day, win rate and icon asset id, most-awarded first |

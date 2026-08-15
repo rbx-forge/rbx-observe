@@ -12,4 +12,5 @@ pub mod game;
 pub mod group;
 pub mod media;
 pub mod places;
+pub mod snapshot;
 pub mod storefront;

@@ -5,7 +5,7 @@ use std::fmt::Write;
 use anyhow::Result;
 use serde::Serialize;
 
-use crate::api::games::{GameDetail, Votes};
+use crate::api::games::{GameDetail, MediaEntry, Votes};
 use crate::api::maturity::Maturity;
 use crate::api::places::Place;
 use crate::api::thumbnails::Images;
@@ -24,7 +24,9 @@ pub struct Game {
     /// place asset could not be read — the rest of the report is still worth
     /// printing, so this is not an error.
     pub icon_asset_id: Option<u64>,
-    pub media_count: usize,
+    /// The carousel itself, not just its size: a caller that already has this
+    /// does not need to ask `games.roblox.com` for it again.
+    pub media: Vec<MediaEntry>,
     pub has_preview_video: bool,
 }
 
@@ -55,8 +57,8 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Game> {
 
     Ok(Game {
         icon_asset_id,
-        media_count: media.len(),
         has_preview_video: media.iter().any(|entry| entry.is_video()),
+        media,
         detail,
         votes,
         images,
@@ -152,7 +154,7 @@ pub fn render(game: &Game) -> String {
     let _ = writeln!(
         out,
         "  carousel      {} item(s), {}",
-        game.media_count,
+        game.media.len(),
         if game.has_preview_video {
             "opens on a video"
         } else {
@@ -348,7 +350,7 @@ mod tests {
         assert_eq!(game.votes.up_votes, 300);
         assert_eq!(game.icon_asset_id, Some(123456));
         assert_eq!(game.images.banner_asset_id, Some(999));
-        assert_eq!(game.media_count, 2);
+        assert_eq!(game.media.len(), 2);
         assert!(game.has_preview_video);
     }
 

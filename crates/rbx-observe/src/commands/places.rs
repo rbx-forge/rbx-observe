@@ -40,7 +40,18 @@ pub struct PlaceStatus {
 pub async fn collect(client: &Client, universe_id: u64) -> Result<Places> {
     let detail = client.game_detail(universe_id).await?;
     let places = client.universe_places(universe_id).await?;
+    collect_with(client, universe_id, detail.root_place_id, places).await
+}
 
+/// The same work for a caller that already holds the root place id and the
+/// place list — `snapshot` does, and re-fetching both would be two requests
+/// spent on answers it is already holding.
+pub async fn collect_with(
+    client: &Client,
+    universe_id: u64,
+    root_place_id: u64,
+    places: Vec<crate::api::places::Place>,
+) -> Result<Places> {
     let mut out = Vec::with_capacity(places.len());
     for place in places {
         let published = client
@@ -54,7 +65,7 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Places> {
         let servers = client.place_servers(place.id).await.unwrap_or_default();
 
         out.push(PlaceStatus {
-            is_root: place.id == detail.root_place_id,
+            is_root: place.id == root_place_id,
             id: place.id,
             name: place.name,
             published,
@@ -73,7 +84,7 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Places> {
 
     Ok(Places {
         universe_id,
-        root_place_id: detail.root_place_id,
+        root_place_id,
         places: out,
     })
 }
