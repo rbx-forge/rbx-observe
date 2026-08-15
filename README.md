@@ -6,7 +6,7 @@ it.
 
 ```sh
 rbx-observe charts --sort top-earning
-rbx-observe game https://www.roblox.com/games/2222222222222221/Sandbox Frontier
+rbx-observe game https://www.roblox.com/games/2222222222222221/Some-Game
 rbx-observe storefront 1111111111111
 rbx-observe badges 1111111111111 --json
 rbx-observe group 33333333333
