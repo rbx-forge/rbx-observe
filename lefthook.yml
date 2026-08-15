@@ -1,0 +1,19 @@
+# Git hooks managed by lefthook. Install once with `lefthook install`.
+# https://lefthook.dev/
+
+pre-commit:
+  parallel: true
+  commands:
+    fmt:
+      # Same check CI runs. Catching it locally avoids round-trips.
+      glob: "*.rs"
+      run: cargo fmt --all -- --check
+      fail_text: "rustfmt found unformatted files. Run `cargo fmt --all` then re-stage."
+    clippy:
+      # --all-targets so tests are linted too. -D warnings mirrors CI.
+      glob: "*.rs"
+      run: cargo clippy --workspace --all-targets -- -D warnings
+      fail_text: "clippy found warnings. Fix them, or run `cargo clippy --fix` for auto-fixable ones."
+
+# commit-msg hook intentionally omitted, as in rbx-cli: Conventional Commits is
+# kept by discipline, and the changelog is written by hand at release time.

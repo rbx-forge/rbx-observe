@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/rbx-forge/rbx-observe/security/advisories/new
+    about: Report privately. Never in a public issue.
+  - name: The boundary
+    url: https://github.com/rbx-forge/rbx-observe#the-boundary-which-does-not-move
+    about: Game-level public data only, never person-level. Read before requesting a feature.
+  - name: rbx-cli
+    url: https://github.com/rbx-forge/rbx-cli
+    about: Managing your own universe rather than observing others? That's the other tool.

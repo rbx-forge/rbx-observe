@@ -1,0 +1,59 @@
+name: Bug report
+description: Something the tool does that it shouldn't, or doesn't do that it should
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Found a security problem instead? Don't file it here — use a
+        [private advisory](https://github.com/rbx-forge/rbx-observe/security/advisories/new).
+
+  - type: input
+    id: version
+    attributes:
+      label: rbx-observe --version
+      placeholder: "rbx-observe 0.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Windows 11 24H2 / macOS 15.3 / Ubuntu 24.04"
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command you ran
+      description: The full command line. Universe ids are public, so no redaction is needed here.
+      render: shell
+      placeholder: rbx-observe storefront 123456789
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: What happened
+      description: The output. For an HTTP failure, the status line matters more than the body.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Does it reproduce every time? Only on certain experiences?
+    validations:
+      required: false

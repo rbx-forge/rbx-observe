@@ -1,0 +1,43 @@
+name: Feature request
+description: Something the tool should be able to do
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Read the boundary first:**
+        [game-level public data only, never person-level](https://github.com/rbx-forge/rbx-observe#the-boundary-which-does-not-move).
+        A request that crosses it is declined regardless of how it is framed —
+        that line is the point of the project, not an obstacle in it.
+
+        Solo-maintained. Issues are triaged, not promised.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: >
+        What are you trying to learn about a category or a competitor, and what
+        stops you today? The manual workaround you currently use is the most
+        useful detail here.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you'd like it to do
+      description: If you have a command shape in mind, write it out.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: data
+    attributes:
+      label: What data it would read
+      description: >
+        Which endpoint or page, and one line on why it is game-level and
+        public. Skip if your request reads nothing new.
+    validations:
+      required: false

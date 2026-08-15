@@ -1,0 +1,26 @@
+[workspace]
+resolver = "2"
+members = ["crates/rbx-observe"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2021"
+# Matches rbx-cli's floor rather than being derived from this tree's own
+# dependencies, which are too few to constrain anything yet. Revisit when a
+# dependency actually raises it.
+rust-version = "1.88"
+license = "MPL-2.0"
+repository = "https://github.com/rbx-forge/rbx-observe"
+
+[workspace.dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+
+[workspace.lints.rust]
+# Same posture as rbx-cli: an unused item is either wired up or deleted, and
+# a deliberate exception carries a narrow allow with a reason.
+dead_code = "deny"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }

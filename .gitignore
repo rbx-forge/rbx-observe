@@ -1,0 +1,13 @@
+/target
+
+# Editor/tool configs
+.idea/
+.vscode/
+.zed/
+.claude/
+
+# Nothing in this tool needs a credential, and that is deliberate: it reads
+# public endpoints only. If a file matching one of these ever appears here,
+# something has drifted from the tool's boundary.
+*.env
+.secrets/

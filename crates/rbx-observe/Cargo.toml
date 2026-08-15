@@ -1,0 +1,15 @@
+[package]
+name = "rbx-observe"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Observe the public storefronts of Roblox experiences: passes, products, prices, badges, update cadence"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+
+[lints]
+workspace = true
