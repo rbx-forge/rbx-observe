@@ -37,8 +37,8 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Everything the page tells you: players, visits, votes, icon and banner
-    /// asset ids, whether the carousel opens on a video.
+    /// Everything the page tells you: description, players, visits, votes,
+    /// maturity label, every place in the universe, icon and banner asset ids.
     Game {
         /// Universe id, place id, or a roblox.com game URL.
         target: String,
@@ -78,19 +78,66 @@ enum Command {
         #[arg(long)]
         place: bool,
     },
+
+    /// Every place in the universe: whether each looks published, and what is
+    /// running on it right now.
+    ///
+    /// Separate from `game` because it costs two extra requests per place.
+    Places {
+        /// Universe id, place id, or a roblox.com game URL.
+        target: String,
+        /// Read the number as a place id rather than a universe id.
+        #[arg(long)]
+        place: bool,
+    },
+
+    /// A studio and the games it publishes.
+    ///
+    /// There is no user-keyed equivalent: a catalog keyed to an individual
+    /// account is a person's output rather than a studio's.
+    Group {
+        /// Group id, from `roblox.com/communities/<groupId>/...`.
+        group_id: u64,
+
+        /// Also list the games that are not in the group's public listing.
+        ///
+        /// Roblox returns a group's staging copies, test places and
+        /// unreleased projects to anonymous callers. They are always counted
+        /// in the summary; this prints their names.
+        #[arg(long)]
+        all: bool,
+    },
+
+    /// Turn asset ids into the URLs that render them.
+    ///
+    /// Every other command prints asset ids; this resolves any of them, in one
+    /// batched call. Only a completed render is reported as a URL: Roblox
+    /// answers a bad id with a placeholder image rather than an error.
+    Asset {
+        /// One or more asset ids.
+        #[arg(required = true, num_args = 1..)]
+        asset_ids: Vec<u64>,
+
+        /// Render size. Roblox rejects anything outside this list.
+        #[arg(long, default_value = "420x420", value_parser = api::thumbnails::SIZES)]
+        size: String,
+    },
 }
 
 impl Command {
-    /// Every subcommand takes the same target pair, so resolution happens once
-    /// here rather than being repeated in four command modules.
-    fn target(&self) -> Result<Target> {
+    /// The four universe-keyed commands take the same target pair, so parsing
+    /// happens once here rather than in four command modules. `group` and
+    /// `asset` are keyed by something else and have no target.
+    fn target(&self) -> Result<Option<Target>> {
         let (raw, place) = match self {
             Command::Game { target, place }
             | Command::Storefront { target, place }
             | Command::Badges { target, place }
-            | Command::Media { target, place } => (target, *place),
+            | Command::Media { target, place }
+            | Command::Places { target, place } => (target, *place),
+            Command::Group { .. } | Command::Asset { .. } => return Ok(None),
         };
-        Target::parse(raw, place)
+        Target::parse(raw, place).map(Some)
     }
 }
 
@@ -98,7 +145,13 @@ impl Command {
 async fn main() -> Result<()> {
     let cli = Cli::parse();
     let client = Client::new()?;
-    let universe_id = cli.command.target()?.resolve(&client).await?;
+
+    // Resolved before dispatch so that a place id costs its one extra lookup
+    // in exactly one place, whichever command asked for it.
+    let universe_id = match cli.command.target()? {
+        Some(target) => target.resolve(&client).await?,
+        None => 0,
+    };
 
     match cli.command {
         Command::Game { .. } => commands::game::run(&client, universe_id, cli.json).await,
@@ -107,6 +160,13 @@ async fn main() -> Result<()> {
         }
         Command::Badges { .. } => commands::badges::run(&client, universe_id, cli.json).await,
         Command::Media { .. } => commands::media::run(&client, universe_id, cli.json).await,
+        Command::Places { .. } => commands::places::run(&client, universe_id, cli.json).await,
+        Command::Group { group_id, all } => {
+            commands::group::run(&client, group_id, all, cli.json).await
+        }
+        Command::Asset { asset_ids, size } => {
+            commands::asset::run(&client, &asset_ids, &size, cli.json).await
+        }
     }
 }
 
@@ -134,6 +194,21 @@ mod tests {
     #[test]
     fn place_flag_reaches_the_target() {
         let cli = Cli::try_parse_from(["rbx-observe", "game", "123", "--place"]).unwrap();
-        assert_eq!(cli.command.target().unwrap(), Target::Place(123));
+        assert_eq!(cli.command.target().unwrap(), Some(Target::Place(123)));
+    }
+
+    #[test]
+    fn group_and_asset_have_no_universe_target_to_resolve() {
+        let group = Cli::try_parse_from(["rbx-observe", "group", "33333333333"]).unwrap();
+        assert_eq!(group.command.target().unwrap(), None);
+
+        let asset = Cli::try_parse_from(["rbx-observe", "asset", "1", "2"]).unwrap();
+        assert_eq!(asset.command.target().unwrap(), None);
+    }
+
+    #[test]
+    fn an_unsupported_render_size_is_refused_before_any_request() {
+        assert!(Cli::try_parse_from(["rbx-observe", "asset", "1", "--size", "421x421"]).is_err());
+        assert!(Cli::try_parse_from(["rbx-observe", "asset", "1", "--size", "512x512"]).is_ok());
     }
 }

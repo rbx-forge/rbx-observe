@@ -1,4 +1,4 @@
-//! One HTTP client, one retry loop, five Roblox hosts.
+//! One HTTP client, one retry loop, seven Roblox hosts.
 //!
 //! Every endpoint reached from here is public: no API key, no cookie, no
 //! authentication of any kind. If a change to this module ever needs a
@@ -7,8 +7,12 @@
 pub mod badges;
 pub mod economy;
 pub mod games;
+pub mod groups;
+pub mod maturity;
 pub mod monetization;
 mod pace;
+pub mod places;
+pub mod servers;
 pub mod thumbnails;
 
 use std::time::Duration;
@@ -28,10 +32,16 @@ const USER_AGENT: &str = concat!(
     " (+https://github.com/rbx-forge/rbx-observe)"
 );
 
-/// The five hosts, kept in one place so tests can point them all at a single
-/// mock server. Roblox splits its public read API across subdomains that do
-/// not share a version scheme or a pagination style, so the host is part of
-/// the identity of an endpoint, not an implementation detail.
+/// The hosts, kept in one place so tests can point them all at a single mock
+/// server. Roblox splits its public read API across subdomains that do not
+/// share a version scheme or a pagination style, so the host is part of the
+/// identity of an endpoint, not an implementation detail.
+///
+/// These are the real `roblox.com` hosts and nothing else. Community proxies
+/// such as `roproxy.com` mirror the same paths and are popular for getting
+/// around IP rate limits; sending someone else's traffic through a third party
+/// to dodge a quota is not what a polite reader does, and the quota is a
+/// signal to slow down rather than an obstacle to route around.
 #[derive(Clone, Debug)]
 pub struct Hosts {
     pub games: String,
@@ -39,6 +49,8 @@ pub struct Hosts {
     pub apis: String,
     pub economy: String,
     pub thumbnails: String,
+    pub develop: String,
+    pub groups: String,
 }
 
 impl Default for Hosts {
@@ -49,6 +61,8 @@ impl Default for Hosts {
             apis: "https://apis.roblox.com".into(),
             economy: "https://economy.roblox.com".into(),
             thumbnails: "https://thumbnails.roblox.com".into(),
+            develop: "https://develop.roblox.com".into(),
+            groups: "https://groups.roblox.com".into(),
         }
     }
 }
@@ -96,6 +110,8 @@ impl Client {
                 apis: base.to_string(),
                 economy: base.to_string(),
                 thumbnails: base.to_string(),
+                develop: base.to_string(),
+                groups: base.to_string(),
             },
             pacer: Pacer::disabled(),
             backoff: Duration::ZERO,
@@ -118,12 +134,38 @@ impl Client {
         url: &str,
         params: &[(&str, &str)],
     ) -> Result<T> {
-        let body = self.get_text(url, params).await?;
+        let body = self
+            .send_text(url, || self.http.get(url).query(params))
+            .await?;
         serde_json::from_str(&body)
             .with_context(|| format!("Failed to parse the response from {url}"))
     }
 
-    async fn get_text(&self, url: &str, params: &[(&str, &str)]) -> Result<String> {
+    /// POST one JSON document and read one back.
+    ///
+    /// Exactly one endpoint needs this — the content-maturity API takes its
+    /// universe id in a body rather than a query string — and it is still a
+    /// read: nothing this tool sends changes anything on Roblox's side.
+    pub(crate) async fn post_json<T: DeserializeOwned>(
+        &self,
+        url: &str,
+        body: &serde_json::Value,
+    ) -> Result<T> {
+        let text = self
+            .send_text(url, || self.http.post(url).json(body))
+            .await?;
+        serde_json::from_str(&text)
+            .with_context(|| format!("Failed to parse the response from {url}"))
+    }
+
+    /// The retry loop. Takes a builder rather than a request because a
+    /// `RequestBuilder` is consumed by sending it, and every attempt needs a
+    /// fresh one.
+    async fn send_text(
+        &self,
+        url: &str,
+        build: impl Fn() -> reqwest::RequestBuilder,
+    ) -> Result<String> {
         let mut last_status: Option<StatusCode> = None;
 
         for attempt in 0..self.attempts {
@@ -135,7 +177,7 @@ impl Client {
             }
             self.pacer.wait().await;
 
-            let response = self.http.get(url).query(params).send().await;
+            let response = build().send().await;
 
             let response = match response {
                 Ok(response) => response,

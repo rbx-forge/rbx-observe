@@ -4,15 +4,20 @@ use anyhow::Result;
 use serde::Serialize;
 
 use crate::api::games::{GameDetail, Votes};
+use crate::api::maturity::Maturity;
+use crate::api::places::Place;
 use crate::api::thumbnails::Images;
 use crate::api::Client;
-use crate::render::{asset_url, date, dim, heading, thousands};
+use crate::render::{asset_url, block, date, dim, heading, thousands, truncate};
 
 #[derive(Debug, Serialize)]
 pub struct Game {
     pub detail: GameDetail,
     pub votes: Votes,
     pub images: Images,
+    pub maturity: Maturity,
+    /// Every place in the universe, not just the root one the page shows.
+    pub places: Vec<Place>,
     /// Asset id of the experience icon, from the place asset. `None` when the
     /// place asset could not be read — the rest of the report is still worth
     /// printing, so this is not an error.
@@ -26,6 +31,16 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Game> {
     let votes = client.votes(universe_id).await?;
     let images = client.images(universe_id).await?;
     let media = client.media(universe_id).await?;
+
+    // Both of these are extras rather than the point of the command, and both
+    // sit on hosts that answer for a narrower set of experiences than the
+    // games endpoint does. A failure degrades one section instead of losing
+    // the report.
+    let maturity = client.maturity(universe_id).await.unwrap_or_default();
+    let places = client
+        .universe_places(universe_id)
+        .await
+        .unwrap_or_default();
 
     // The icon's asset id needs a second host and the root place id, which is
     // only known once `detail` has come back. A failure here is degraded
@@ -43,6 +58,8 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Game> {
         detail,
         votes,
         images,
+        maturity,
+        places,
     })
 }
 
@@ -50,15 +67,16 @@ pub fn render(game: &Game) {
     let d = &game.detail;
 
     println!("{}", heading(&d.name));
-    println!(
-        "  {} {} · universe {} · place {}",
-        d.creator.kind.as_deref().unwrap_or("creator"),
-        d.creator.name.as_deref().unwrap_or("unknown"),
-        d.id,
-        d.root_place_id
-    );
+    println!("  universe {} · place {}", d.id, d.root_place_id);
+    println!("  {}", creator_line(&d.creator));
     println!("  https://www.roblox.com/games/{}", d.root_place_id);
     println!();
+
+    if let Some(description) = d.description.as_deref().filter(|text| !text.is_empty()) {
+        println!("{}", heading("Description"));
+        println!("{}", dim(&block(&truncate(description, 600), "  ")));
+        println!();
+    }
 
     println!("{}", heading("Audience"));
     println!("  playing now   {}", thousands(d.playing));
@@ -75,12 +93,36 @@ pub fn render(game: &Game) {
     println!("{}", heading("Shape"));
     println!("  max players   {}", d.max_players);
     println!("  genre         {}", genre(d));
+    println!("  maturity      {}", maturity_line(&game.maturity));
+    println!("  age           {}", age_line(&game.maturity));
     println!("  created       {}", date(d.created.as_deref()));
     println!("  updated       {}", date(d.updated.as_deref()));
     if let Some(price) = d.price {
         println!("  paid access   R$ {}", thousands(price));
     }
+    for descriptor in &game.maturity.descriptors {
+        if let Some(name) = descriptor.display_name.as_deref() {
+            println!("  {}", dim(&format!("contains: {name}")));
+        }
+    }
     println!();
+
+    if !game.places.is_empty() {
+        println!("{}", heading("Places"));
+        for place in &game.places {
+            let role = if place.id == d.root_place_id {
+                " (root)"
+            } else {
+                ""
+            };
+            println!("  {}  {}{}", place.id, place.name, role);
+        }
+        println!(
+            "  {}",
+            dim("public/private per place is not readable without a session")
+        );
+        println!();
+    }
 
     println!("{}", heading("Assets"));
     match game.icon_asset_id {
@@ -111,10 +153,77 @@ pub fn render(game: &Game) {
 /// Roblox's own taxonomy first: the legacy `genre` field says "All" on the
 /// large majority of experiences, so it is the fallback, not the answer.
 fn genre(detail: &GameDetail) -> String {
-    match (&detail.genre_l1, &detail.genre_l2) {
+    // Roblox sends an empty string rather than null for a missing subgenre, so
+    // `Option` alone would print "Simulation / " on every game without one.
+    let present = |field: &Option<String>| {
+        field
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(str::to_string)
+    };
+
+    match (present(&detail.genre_l1), present(&detail.genre_l2)) {
         (Some(l1), Some(l2)) => format!("{l1} / {l2}"),
-        (Some(l1), None) => l1.clone(),
-        _ => detail.genre.clone().unwrap_or_else(|| "-".to_string()),
+        (Some(l1), None) => l1,
+        _ => present(&detail.genre).unwrap_or_else(|| "-".to_string()),
+    }
+}
+
+/// Publisher attribution: who the game page says published this, with the id
+/// and the kind of account it is.
+///
+/// For a `Group` creator, `creator.id` is the group id itself, so the drill-
+/// down is one command away. For a `User` creator there is no equivalent here
+/// on purpose: a catalog keyed to an individual account is a person's output.
+fn creator_line(creator: &crate::api::games::Creator) -> String {
+    let name = creator.name.as_deref().unwrap_or("unknown");
+    let kind = creator.kind.as_deref().unwrap_or("creator");
+
+    match (creator.id, creator.kind.as_deref()) {
+        (Some(id), Some("Group")) => {
+            format!("{kind} {name} ({id}) · rbx-observe group {id}")
+        }
+        (Some(id), _) => format!("{kind} {name} ({id})"),
+        (None, _) => format!("{kind} {name}"),
+    }
+}
+
+/// The content label alone: `Minimal`, `Mild`, `Moderate`, `Restricted`, or
+/// `-` while Roblox has not rated the experience.
+fn maturity_line(maturity: &Maturity) -> String {
+    maturity
+        .recommendation
+        .display_name
+        .clone()
+        .unwrap_or_else(|| "-".to_string())
+}
+
+/// The age gate, which is a different axis from the maturity label: two
+/// experiences can both be `Minimal` while one is open to everyone and the
+/// other is 16+.
+///
+/// `0` means no gate, and saying "all ages" is the useful rendering of that.
+/// It is distinct from `-`, which means Roblox has not rated the experience
+/// at all and therefore has not said anything about age either.
+fn age_line(maturity: &Maturity) -> String {
+    let recommendation = &maturity.recommendation;
+
+    if let Some(display) = recommendation
+        .minimum_age_display
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        return display.to_string();
+    }
+
+    match recommendation.minimum_age {
+        Some(0) => "all ages".to_string(),
+        Some(age) => format!("{age}+"),
+        // No age at all, but a label: rated, and the gate is simply absent.
+        None if recommendation.display_name.is_some() => "all ages".to_string(),
+        None => "-".to_string(),
     }
 }
 
@@ -237,6 +346,149 @@ mod tests {
 
         assert_eq!(game.icon_asset_id, None);
         assert_eq!(game.detail.name, "Sandbox Frontier");
+    }
+
+    #[tokio::test]
+    async fn maturity_and_places_enrich_the_report_when_the_hosts_answer() {
+        let server = server_with_a_full_game().await;
+        Mock::given(method("GET"))
+            .and(path("/v2/assets/777/details"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_string(
+                    r#"{"AssetTypeId":9,"AssetId":777,"IconImageAssetId":123456}"#,
+                ),
+            )
+            .mount(&server)
+            .await;
+        Mock::given(method("POST"))
+            .and(path(
+                "/experience-guidelines-api/experience-guidelines/get-age-recommendation",
+            ))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"ageRecommendationDetails":{"summary":{"ageRecommendation":
+                   {"displayName":"Mild","minimumAge":9}},"descriptorUsages":[]}}"#,
+            ))
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v1/universes/42/places"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"data":[{"id":777,"name":"Main"},{"id":778,"name":"Tutorial"}],
+                   "nextPageCursor":null}"#,
+            ))
+            .mount(&server)
+            .await;
+
+        let game = collect(&Client::with_base_url(&server.uri()), 42)
+            .await
+            .unwrap();
+
+        assert_eq!(maturity_line(&game.maturity), "Mild");
+        assert_eq!(age_line(&game.maturity), "9+");
+        assert_eq!(game.places.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn maturity_and_places_are_optional_sections() {
+        // Neither host is mocked at all here: both calls fail, and the report
+        // still has to come back rather than taking the command down with it.
+        let server = server_with_a_full_game().await;
+        Mock::given(method("GET"))
+            .and(path("/v2/assets/777/details"))
+            .respond_with(ResponseTemplate::new(404))
+            .mount(&server)
+            .await;
+
+        let game = collect(&Client::with_base_url(&server.uri()), 42)
+            .await
+            .unwrap();
+
+        assert_eq!(maturity_line(&game.maturity), "-");
+        assert!(game.places.is_empty());
+        assert_eq!(game.detail.name, "Sandbox Frontier");
+    }
+
+    #[test]
+    fn an_empty_subgenre_does_not_leave_a_dangling_separator() {
+        let detail = |l1: &str, l2: &str, legacy: &str| GameDetail {
+            id: 1,
+            root_place_id: 2,
+            name: String::new(),
+            description: None,
+            creator: Default::default(),
+            price: None,
+            playing: 0,
+            visits: 0,
+            max_players: 0,
+            favorited_count: 0,
+            created: None,
+            updated: None,
+            genre: Some(legacy.to_string()),
+            genre_l1: Some(l1.to_string()),
+            genre_l2: Some(l2.to_string()),
+        };
+
+        // Roblox sends "" rather than null here, which is what produced
+        // "Simulation / " with a trailing separator.
+        assert_eq!(genre(&detail("Simulation", "", "All")), "Simulation");
+        assert_eq!(
+            genre(&detail("Simulation", "Sandbox", "All")),
+            "Simulation / Sandbox"
+        );
+        assert_eq!(genre(&detail("", "", "All")), "All");
+        assert_eq!(genre(&detail("", "", "")), "-");
+    }
+
+    #[test]
+    fn the_creator_line_carries_the_id_and_the_kind() {
+        use crate::api::games::Creator;
+
+        let group = Creator {
+            id: Some(33333333334),
+            name: Some("Northwind Studio".into()),
+            kind: Some("Group".into()),
+        };
+        assert_eq!(
+            creator_line(&group),
+            "Group Northwind Studio (33333333334) · rbx-observe group 33333333334"
+        );
+
+        // A user creator gets the same attribution and no drill-down: the
+        // user-keyed catalog endpoint is the one this tool does not call.
+        let user = Creator {
+            id: Some(99),
+            name: Some("someone".into()),
+            kind: Some("User".into()),
+        };
+        assert_eq!(creator_line(&user), "User someone (99)");
+
+        assert_eq!(creator_line(&Creator::default()), "creator unknown");
+    }
+
+    #[test]
+    fn the_age_gate_and_the_maturity_label_are_reported_separately() {
+        let rated = |age: Option<u32>, display: Option<&str>| {
+            let mut maturity = Maturity::default();
+            maturity.recommendation.display_name = Some("Minimal".to_string());
+            maturity.recommendation.minimum_age = age;
+            maturity.recommendation.minimum_age_display = display.map(str::to_string);
+            maturity
+        };
+
+        // Both of these are `Minimal`. Only the gate differs, which is the
+        // whole reason they are two lines: recorded from a 16+ experience and
+        // an all-ages one that share a maturity label.
+        let gated = rated(Some(16), Some("16+"));
+        assert_eq!(maturity_line(&gated), "Minimal");
+        assert_eq!(age_line(&gated), "16+");
+
+        let open = rated(Some(0), Some(""));
+        assert_eq!(maturity_line(&open), "Minimal");
+        assert_eq!(age_line(&open), "all ages");
+
+        // Unrated is not the same as unrestricted, and must not read as one.
+        assert_eq!(maturity_line(&Maturity::default()), "-");
+        assert_eq!(age_line(&Maturity::default()), "-");
     }
 
     #[test]

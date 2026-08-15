@@ -28,6 +28,27 @@ pub fn price(robux: Option<u64>, for_sale: bool) -> String {
     }
 }
 
+/// Cuts long free text to `limit` characters on a character boundary — game
+/// descriptions run to thousands of characters and are full of emoji, so
+/// slicing bytes would panic.
+pub fn truncate(text: &str, limit: usize) -> String {
+    let trimmed = text.trim();
+    if trimmed.chars().count() <= limit {
+        return trimmed.to_string();
+    }
+    let kept: String = trimmed.chars().take(limit).collect();
+    format!("{}…", kept.trim_end())
+}
+
+/// Free text as its own indented block: descriptions carry hard newlines that
+/// would otherwise break the alignment of everything printed after them.
+pub fn block(text: &str, indent: &str) -> String {
+    text.lines()
+        .map(|line| format!("{indent}{}", line.trim()))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 pub fn heading(text: &str) -> String {
     text.bold().to_string()
 }
@@ -70,6 +91,19 @@ mod tests {
         assert_eq!(price(None, true), "free");
         assert_eq!(price(Some(49), false), "R$ 49 (off sale)");
         assert_eq!(price(None, false), "off sale");
+    }
+
+    #[test]
+    fn truncation_counts_characters_not_bytes() {
+        // Descriptions open with emoji far more often than not; slicing bytes
+        // here would panic mid-codepoint.
+        assert_eq!(truncate("🌎 Sandbox Frontier is a sandbox", 8), "🌎 Sandbox Frontier…");
+        assert_eq!(truncate("  short  ", 50), "short");
+    }
+
+    #[test]
+    fn blocks_are_indented_line_by_line() {
+        assert_eq!(block("a\n  b", "  "), "  a\n  b");
     }
 
     #[test]

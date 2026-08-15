@@ -8,7 +8,8 @@ it.
 rbx-observe game https://www.roblox.com/games/2222222222222221/Sandbox Frontier
 rbx-observe storefront 1111111111111
 rbx-observe badges 1111111111111 --json
-rbx-observe media 1111111111111
+rbx-observe group 33333333333
+rbx-observe asset 4444444444444441 --size 1024x1024
 ```
 
 No API key. No cookie. No account. Everything it reads is what a logged-out
@@ -34,10 +35,14 @@ weeks rather than a screenshot you took once.
 **Game-level, aggregate, public data only. Never person-level.**
 
 - No player lists, no account tracking, no per-user history, nothing keyed to a
-  person. `groups.roblox.com` would hand over a group's owner and every member
-  of every rank; it is deliberately not used, and
-  [docs/endpoints.md](./docs/endpoints.md) says so where somebody would look to
-  add it.
+  person. Presence (where an account is right now), inventories, profiles, a
+  person's group memberships, a group's owner and roster, and the user-keyed
+  game catalog are all public, all easy, and all deliberately absent.
+  [docs/endpoints.md](./docs/endpoints.md) lists each one with its reason,
+  where somebody would look before adding it. Where the excluded field sits
+  inside a payload the tool *does* read — a group's `owner` — it is simply not
+  declared on the struct, so it never enters the process, and a test asserts
+  that.
 - Polite rate limiting: paced requests that widen on every 429, and no "mirror
   the whole catalog" mode. It asks about experiences you name, one at a time.
 - No credential of any kind, which is the same constraint from the other side:
@@ -62,13 +67,22 @@ cargo build --release
 
 | Command | What it reports |
 | --- | --- |
-| `rbx-observe game <target>` | Players, visits, favorites, votes, genre, dates, icon and banner asset ids, carousel size, preview video |
+| `rbx-observe game <target>` | Description, players, visits, favorites, votes, genre, maturity label and content descriptors, every place in the universe, icon and banner asset ids, carousel size, preview video |
 | `rbx-observe storefront <target>` | Game passes and developer products: prices, ids, icon asset ids, and the low/median/high of what is actually on sale |
 | `rbx-observe badges <target>` | Every badge with total awards, awards in the last day, win rate and icon asset id, most-awarded first |
 | `rbx-observe media <target>` | Carousel screenshots as permanent asset ids, with the preview video if there is one |
+| `rbx-observe places <target>` | Every place in the universe: published or internal, and the live server fleet on each |
+| `rbx-observe group <groupId>` | A studio: members, entry policy, its catalog with live players, and how many games it has that are not publicly listed |
+| `rbx-observe asset <ids…>` | Any asset id resolved to the URL that renders it, batched |
 
 `<target>` is a universe id, a place id with `--place`, or a game URL. `--json`
 on any of them prints the same data machine-readably.
+
+Where Roblox does not tell an anonymous caller the truth outright, the tool
+says which part is inferred rather than guessing silently: a place's
+public/private state is inferred from its product id because `isPlayable` needs
+a session, and social links are not available at all
+(`/social-links/list` answers `Authentication token is missing`).
 
 Full descriptions in [docs/commands.md](./docs/commands.md); every endpoint,
 its traps and the rate-limiting model in

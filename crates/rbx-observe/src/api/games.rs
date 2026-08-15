@@ -110,23 +110,49 @@ struct UniverseOfPlace {
     universe_id: u64,
 }
 
-impl Client {
-    /// The endpoint takes a comma-separated list and answers with an array;
-    /// one universe is the degenerate case. An unknown id is not an error
-    /// here, it is an empty array, so the "not found" message is ours to
-    /// write.
-    pub async fn game_detail(&self, universe_id: u64) -> Result<GameDetail> {
-        let url = format!("{}/v1/games", self.hosts().games);
-        let body: DataEnvelope<GameDetail> = self
-            .get_json(&url, &[("universeIds", &universe_id.to_string())])
-            .await?;
+/// Universe ids per request on the batched endpoints. **50, not 100**: 100
+/// answers `{"code":9,"message":"Too many universe IDs were requested."}`
+/// despite what the docs suggest.
+pub const BATCH: usize = 50;
 
-        body.data.into_iter().next().with_context(|| {
-            format!(
-                "No experience with universe id {universe_id}. If that number came from a \
-                 game URL it is a place id — pass --place."
-            )
-        })
+impl Client {
+    /// Details for many universes in as few requests as the endpoint allows.
+    ///
+    /// Ids Roblox has nothing for are simply absent from the response, so the
+    /// result is not positionally aligned with the input — callers match on
+    /// `id`.
+    pub async fn game_details(&self, universe_ids: &[u64]) -> Result<Vec<GameDetail>> {
+        let url = format!("{}/v1/games", self.hosts().games);
+        let mut out = Vec::with_capacity(universe_ids.len());
+
+        for chunk in universe_ids.chunks(BATCH) {
+            let joined = chunk
+                .iter()
+                .map(u64::to_string)
+                .collect::<Vec<_>>()
+                .join(",");
+            let body: DataEnvelope<GameDetail> =
+                self.get_json(&url, &[("universeIds", &joined)]).await?;
+            out.extend(body.data);
+        }
+
+        Ok(out)
+    }
+
+    /// One universe, the degenerate case of the batch above. An unknown id is
+    /// not an error here, it is an empty array, so the "not found" message is
+    /// ours to write.
+    pub async fn game_detail(&self, universe_id: u64) -> Result<GameDetail> {
+        self.game_details(&[universe_id])
+            .await?
+            .into_iter()
+            .next()
+            .with_context(|| {
+                format!(
+                    "No experience with universe id {universe_id}. If that number came from a \
+                     game URL it is a place id — pass --place."
+                )
+            })
     }
 
     pub async fn votes(&self, universe_id: u64) -> Result<Votes> {
@@ -214,6 +240,52 @@ mod tests {
             .to_string();
 
         assert!(error.contains("--place"), "{error}");
+    }
+
+    #[tokio::test]
+    async fn many_universes_travel_in_one_request_per_fifty() {
+        let server = MockServer::start().await;
+        let ids: Vec<u64> = (1..=60).collect();
+
+        // 60 ids, cap of 50: two requests, and the first one must carry
+        // exactly fifty. A single request would come back as an error from
+        // Roblox rather than a truncated list.
+        let first: String = (1..=50)
+            .map(|n| n.to_string())
+            .collect::<Vec<_>>()
+            .join(",");
+        Mock::given(method("GET"))
+            .and(path("/v1/games"))
+            .and(query_param("universeIds", first))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_string(r#"{"data":[{"id":1,"rootPlaceId":11,"name":"One"}]}"#),
+            )
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let second: String = (51..=60)
+            .map(|n| n.to_string())
+            .collect::<Vec<_>>()
+            .join(",");
+        Mock::given(method("GET"))
+            .and(path("/v1/games"))
+            .and(query_param("universeIds", second))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_string(r#"{"data":[{"id":51,"rootPlaceId":51,"name":"Fifty-one"}]}"#),
+            )
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let details = Client::with_base_url(&server.uri())
+            .game_details(&ids)
+            .await
+            .unwrap();
+
+        assert_eq!(details.len(), 2);
     }
 
     #[tokio::test]

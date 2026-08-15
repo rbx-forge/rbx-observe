@@ -11,9 +11,33 @@ No release yet. Build from source.
 
 ### Added
 
-- **Four read commands**: `game`, `storefront`, `badges`, `media`, each taking
-  a universe id, a place id (`--place`) or a roblox.com game URL, and each with
-  `--json`.
+- **Seven read commands**: `game`, `storefront`, `badges`, `media`, `places` —
+  each taking a universe id, a place id (`--place`) or a roblox.com game URL —
+  plus `group` and `asset`. All of them support `--json`.
+- **`places`**: every place in a universe, whether each looks published or
+  internal, and the live server fleet on it (servers, players, seats, fill
+  rate). The published state is an inference from the place's product id and
+  says so; Roblox's own `isPlayable` needs a session.
+- **`group` reports live players and unlisted games.** The catalog's CCU costs
+  one batched request for up to 50 universes. Roblox also hands anonymous
+  callers a group's staging and test places — those are counted in the summary
+  always and named only under `--all`.
+- **The age gate is reported separately from the maturity label.** They are
+  independent: two experiences can both be `Minimal` while one is open to
+  everyone and the other is 16+.
+- **`game` reports the page in full**: description, the maturity label
+  (`Minimal`, `Mild (9+)`, …) with the content descriptors Roblox actually
+  found, and every place in the universe rather than only the root one. Per
+  place public/private is not exposed anonymously, and the output says so
+  instead of guessing.
+- **`group`**: a studio, its member count and entry policy, and every public
+  game it publishes, most-visited first. Its owner, its shout and its
+  membership roster are in the payloads and are deliberately not read.
+- **`asset`**: any asset id resolved to the CDN URL that renders it, batched,
+  with `--size` validated before the request. A URL is only reported for a
+  `Completed` render — Roblox answers a bad id with a placeholder image and no
+  error, so trusting the URL over the state would hand back a working link for
+  a wrong id.
 - **Asset ids everywhere they exist.** Icon (through the place asset, the only
   public route to an icon's asset id), page banner, every carousel screenshot,
   and the icon of every pass, product and badge — each printed with the URL

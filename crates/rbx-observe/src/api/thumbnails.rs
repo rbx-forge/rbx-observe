@@ -59,7 +59,62 @@ pub struct Images {
     pub banner_asset_id: Option<u64>,
 }
 
+/// Sizes the thumbnail service accepts. Anything else answers 400, so the CLI
+/// validates against this list rather than letting Roblox reject it after a
+/// round-trip.
+pub const SIZES: [&str; 7] = [
+    "50x50",
+    "128x128",
+    "150x150",
+    "256x256",
+    "420x420",
+    "512x512",
+    "1024x1024",
+];
+
+/// Ids per request. The endpoint accepts more, but batches of 50 are what the
+/// neighbouring games endpoints tolerate, and one number is easier to reason
+/// about than five.
+const BATCH: usize = 50;
+
 impl Client {
+    /// Resolves bare asset ids to the CDN URLs that render them.
+    ///
+    /// This is the only route from an asset id to an image without a
+    /// credential: `assetdelivery.roblox.com`, which serves the *original*
+    /// uploaded file rather than a render, answers 401 anonymously.
+    ///
+    /// `targetId` is the asset id here, so the mapping back to the input is
+    /// direct — unlike the games/icons endpoint, where it is the universe id.
+    pub async fn asset_thumbnails(&self, ids: &[u64], size: &str) -> Result<Vec<Thumbnail>> {
+        let url = format!("{}/v1/assets", self.hosts().thumbnails);
+        let mut out = Vec::with_capacity(ids.len());
+
+        for chunk in ids.chunks(BATCH) {
+            let joined = chunk
+                .iter()
+                .map(u64::to_string)
+                .collect::<Vec<_>>()
+                .join(",");
+
+            let body: DataEnvelope<Thumbnail> = self
+                .get_json(
+                    &url,
+                    &[
+                        ("assetIds", &joined),
+                        ("size", size),
+                        ("format", "Png"),
+                        ("isCircular", "false"),
+                    ],
+                )
+                .await?;
+
+            out.extend(body.data);
+        }
+
+        Ok(out)
+    }
+
     pub async fn images(&self, universe_id: u64) -> Result<Images> {
         let icon = self.icon(universe_id).await?;
         let banner = self.banner(universe_id).await?;
@@ -154,6 +209,35 @@ mod tests {
             Some("https://tr.rbxcdn.com/icon")
         );
         assert_eq!(images.banner_asset_id, Some(4444444444444443));
+    }
+
+    #[tokio::test]
+    async fn asset_ids_resolve_to_cdn_urls_in_one_batched_call() {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/v1/assets"))
+            .and(query_param("assetIds", "4444444444444441,4444444444444442"))
+            .and(query_param("size", "420x420"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"data":[
+                   {"targetId":4444444444444441,"state":"Completed",
+                    "imageUrl":"https://tr.rbxcdn.com/180DAY-c0/420/420/Image/Png/noFilter"},
+                   {"targetId":4444444444444442,"state":"Blocked","imageUrl":null}]}"#,
+            ))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let thumbnails = Client::with_base_url(&server.uri())
+            .asset_thumbnails(&[4444444444444441, 4444444444444442], "420x420")
+            .await
+            .unwrap();
+
+        assert_eq!(thumbnails.len(), 2);
+        // A blocked asset is reported with its state rather than dropped: the
+        // caller asked about that id and deserves the answer.
+        assert_eq!(thumbnails[1].state, "Blocked");
+        assert!(thumbnails[1].image_url.is_none());
     }
 
     #[tokio::test]

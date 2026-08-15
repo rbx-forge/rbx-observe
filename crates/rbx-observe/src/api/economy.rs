@@ -25,10 +25,33 @@ pub struct AssetDetails {
     pub name: Option<String>,
     #[serde(rename = "IconImageAssetId", default)]
     pub icon_image_asset_id: Option<u64>,
+    /// Non-zero once a place has been published to the site as a product.
+    /// See [`AssetDetails::is_published`].
+    #[serde(rename = "ProductId", default)]
+    pub product_id: u64,
     #[serde(rename = "Created", default)]
     pub created: Option<String>,
     #[serde(rename = "Updated", default)]
     pub updated: Option<String>,
+}
+
+impl AssetDetails {
+    /// Whether the place looks published rather than internal.
+    ///
+    /// **A heuristic, not a flag Roblox exposes.** Measured on a universe with
+    /// a public root and a private `Tutorial` place: the root answers
+    /// `ProductId: 5555555555555` with `ProductType: "User Product"`, the
+    /// tutorial answers `ProductId: 0` with `ProductType: null`. A place gets
+    /// a product record when it is published to the site, so a zero means it
+    /// never was.
+    ///
+    /// The authoritative field, `isPlayable` on
+    /// `games.roblox.com/v1/games/multiget-place-details`, needs a session.
+    /// This is the closest an anonymous caller gets, and callers should
+    /// present it as an inference.
+    pub fn is_published(&self) -> bool {
+        self.product_id != 0
+    }
 }
 
 impl Client {
@@ -82,6 +105,41 @@ mod tests {
             .unwrap();
 
         assert_eq!(details.icon_image_asset_id, Some(4444444444444441));
+    }
+
+    #[tokio::test]
+    async fn a_product_id_separates_a_published_place_from_an_internal_one() {
+        let server = MockServer::start().await;
+        // Both recorded live from one universe: the root place the game page
+        // links to, and a `Tutorial` place that is not published.
+        Mock::given(method("GET"))
+            .and(path("/v2/assets/2222222222222222/details"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"AssetTypeId":9,"AssetId":2222222222222222,"Name":"Harbour Patrol",
+                   "ProductId":5555555555555,"ProductType":"User Product"}"#,
+            ))
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v2/assets/2222222222222223/details"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"AssetTypeId":9,"AssetId":2222222222222223,"Name":"Tutorial",
+                   "ProductId":0,"ProductType":null}"#,
+            ))
+            .mount(&server)
+            .await;
+
+        let client = Client::with_base_url(&server.uri());
+        assert!(client
+            .place_asset_details(2222222222222222)
+            .await
+            .unwrap()
+            .is_published());
+        assert!(!client
+            .place_asset_details(2222222222222223)
+            .await
+            .unwrap()
+            .is_published());
     }
 
     #[tokio::test]

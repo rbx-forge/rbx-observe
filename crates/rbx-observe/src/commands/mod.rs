@@ -5,7 +5,10 @@
 //! the human and the JSON rendering. Keeping `collect` free of printing is
 //! what lets the wiremock tests assert on data instead of scraping stdout.
 
+pub mod asset;
 pub mod badges;
 pub mod game;
+pub mod group;
 pub mod media;
+pub mod places;
 pub mod storefront;
