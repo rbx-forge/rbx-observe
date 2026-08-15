@@ -5,6 +5,8 @@
 //! publishes for free — and the `trending-in-<category>` sorts are its real
 //! genre taxonomy.
 
+use std::fmt::Write;
+
 use anyhow::{bail, Result};
 use serde::Serialize;
 
@@ -53,11 +55,13 @@ pub async fn collect(
     Ok(Charts { sorts, limit })
 }
 
-pub fn render(charts: &Charts) {
+pub fn render(charts: &Charts) -> String {
+    let mut out = String::new();
     for sort in &charts.sorts {
         let title = sort.sort_display_name.as_deref().unwrap_or(&sort.sort_id);
-        println!("{}", heading(title));
-        println!(
+        let _ = writeln!(out, "{}", heading(title));
+        let _ = writeln!(
+            out,
             "  {}",
             dim(&format!("{} · {} games", sort.sort_id, sort.games.len()))
         );
@@ -68,7 +72,8 @@ pub fn render(charts: &Charts) {
             } else {
                 ""
             };
-            println!(
+            let _ = writeln!(
+                out,
                 "  {:>3}. {:>9}  {:<NAME_WIDTH$}  {}",
                 index + 1,
                 thousands(game.player_count),
@@ -86,7 +91,8 @@ pub fn render(charts: &Charts) {
         }
 
         if sort.games.len() > charts.limit {
-            println!(
+            let _ = writeln!(
+                out,
                 "  {}",
                 dim(&format!(
                     "{} more in this sort (--limit)",
@@ -94,14 +100,21 @@ pub fn render(charts: &Charts) {
                 ))
             );
         }
-        println!();
+        let _ = writeln!(out);
     }
 
-    println!(
+    let _ = writeln!(
+        out,
         "  {}",
         dim("player counts are Roblox's own, as shown on the discovery page")
     );
-    println!("  {}", dim("drill in with  rbx-observe game <universe id>"));
+    let _ = writeln!(
+        out,
+        "  {}",
+        dim("drill in with  rbx-observe game <universe id>")
+    );
+
+    out
 }
 
 pub async fn run(
@@ -115,7 +128,7 @@ pub async fn run(
     if json {
         println!("{}", serde_json::to_string_pretty(&charts)?);
     } else {
-        render(&charts);
+        print!("{}", render(&charts));
     }
     Ok(())
 }
@@ -214,5 +227,16 @@ mod tests {
         // truncated document would be a lie about what Roblox returned.
         assert_eq!(charts.sorts[0].games.len(), 2);
         assert_eq!(charts.limit, 1);
+    }
+
+    #[tokio::test]
+    async fn the_rendering_is_stable() {
+        colored::control::set_override(false);
+        let server = two_sorts().await;
+        let charts = collect(&Client::with_base_url(&server.uri()), None, None, 1)
+            .await
+            .unwrap();
+
+        insta::assert_snapshot!(render(&charts));
     }
 }

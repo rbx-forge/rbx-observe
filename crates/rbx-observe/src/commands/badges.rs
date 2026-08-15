@@ -1,5 +1,7 @@
 //! `rbx-observe badges` — what the experience rewards, and how often.
 
+use std::fmt::Write;
+
 use anyhow::Result;
 use serde::Serialize;
 
@@ -57,15 +59,17 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Badges> {
     })
 }
 
-pub fn render(report: &Badges) {
-    println!("{}", heading("Badges"));
+pub fn render(report: &Badges) -> String {
+    let mut out = String::new();
+    let _ = writeln!(out, "{}", heading("Badges"));
     if report.badges.is_empty() {
-        println!("  {}", dim("none"));
+        let _ = writeln!(out, "  {}", dim("none"));
     }
 
     for badge in &report.badges {
         let state = if badge.enabled { "" } else { " (disabled)" };
-        println!(
+        let _ = writeln!(
+            out,
             "  {:>12}  {:<NAME_WIDTH$}  {}",
             thousands(badge.statistics.awarded_count),
             format!("{}{}", badge.name, state),
@@ -80,12 +84,13 @@ pub fn render(report: &Badges) {
             ))
         );
     }
-    println!();
+    let _ = writeln!(out);
 
     let s = &report.summary;
-    println!("{}", heading("Summary"));
-    println!("  {} badge(s), {} enabled", s.total, s.enabled);
-    println!(
+    let _ = writeln!(out, "{}", heading("Summary"));
+    let _ = writeln!(out, "  {} badge(s), {} enabled", s.total, s.enabled);
+    let _ = writeln!(
+        out,
         "  {} awarded in total · {} in the last day",
         thousands(s.awarded_total),
         thousands(s.awarded_past_day)
@@ -97,8 +102,10 @@ pub fn render(report: &Badges) {
         .filter_map(|badge| badge.icon_image_id)
         .collect();
     if let Some(hint) = asset_hint(&icons) {
-        println!("  {}", dim(&hint));
+        let _ = writeln!(out, "  {}", dim(&hint));
     }
+
+    out
 }
 
 pub async fn run(client: &Client, universe_id: u64, json: bool) -> Result<()> {
@@ -106,7 +113,7 @@ pub async fn run(client: &Client, universe_id: u64, json: bool) -> Result<()> {
     if json {
         println!("{}", serde_json::to_string_pretty(&report)?);
     } else {
-        render(&report);
+        print!("{}", render(&report));
     }
     Ok(())
 }
@@ -163,5 +170,31 @@ mod tests {
             .unwrap();
 
         assert_eq!(report.summary.total, 0);
+    }
+
+    #[tokio::test]
+    async fn the_rendering_is_stable() {
+        colored::control::set_override(false);
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/v1/universes/42/badges"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"data":[
+                   {"id":1,"name":"Welcome to Sandbox Frontier!","enabled":true,"iconImageId":4444444444444442,
+                    "statistics":{"pastDayAwardedCount":581073,"awardedCount":5961800,
+                                  "winRatePercentage":1.0}},
+                   {"id":2,"name":"Retired","enabled":false,"iconImageId":7,
+                    "statistics":{"pastDayAwardedCount":0,"awardedCount":5,
+                                  "winRatePercentage":0.04}}],
+                   "nextPageCursor":null}"#,
+            ))
+            .mount(&server)
+            .await;
+
+        let report = collect(&Client::with_base_url(&server.uri()), 42)
+            .await
+            .unwrap();
+
+        insta::assert_snapshot!(render(&report));
     }
 }

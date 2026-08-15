@@ -1,5 +1,7 @@
 //! `rbx-observe game` — what the experience's page says about itself.
 
+use std::fmt::Write;
+
 use anyhow::Result;
 use serde::Serialize;
 
@@ -63,80 +65,92 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Game> {
     })
 }
 
-pub fn render(game: &Game) {
+pub fn render(game: &Game) -> String {
+    let mut out = String::new();
     let d = &game.detail;
 
-    println!("{}", heading(&d.name));
-    println!("  universe {} · place {}", d.id, d.root_place_id);
-    println!("  {}", creator_line(&d.creator));
-    println!("  https://www.roblox.com/games/{}", d.root_place_id);
-    println!();
+    let _ = writeln!(out, "{}", heading(&d.name));
+    let _ = writeln!(out, "  universe {} · place {}", d.id, d.root_place_id);
+    let _ = writeln!(out, "  {}", creator_line(&d.creator));
+    let _ = writeln!(out, "  https://www.roblox.com/games/{}", d.root_place_id);
+    let _ = writeln!(out);
 
     if let Some(description) = d.description.as_deref().filter(|text| !text.is_empty()) {
-        println!("{}", heading("Description"));
-        println!("{}", dim(&block(&truncate(description, 600), "  ")));
-        println!();
+        let _ = writeln!(out, "{}", heading("Description"));
+        let _ = writeln!(out, "{}", dim(&block(&truncate(description, 600), "  ")));
+        let _ = writeln!(out);
     }
 
-    println!("{}", heading("Audience"));
-    println!("  playing now   {}", thousands(d.playing));
-    println!("  visits        {}", thousands(d.visits));
-    println!("  favorites     {}", thousands(d.favorited_count));
-    println!(
+    let _ = writeln!(out, "{}", heading("Audience"));
+    let _ = writeln!(out, "  playing now   {}", thousands(d.playing));
+    let _ = writeln!(out, "  visits        {}", thousands(d.visits));
+    let _ = writeln!(out, "  favorites     {}", thousands(d.favorited_count));
+    let _ = writeln!(
+        out,
         "  votes         {} up / {} down{}",
         thousands(game.votes.up_votes),
         thousands(game.votes.down_votes),
         approval(&game.votes)
     );
-    println!();
+    let _ = writeln!(out);
 
-    println!("{}", heading("Shape"));
-    println!("  max players   {}", d.max_players);
-    println!("  genre         {}", genre(d));
-    println!("  maturity      {}", maturity_line(&game.maturity));
-    println!("  age           {}", age_line(&game.maturity));
-    println!("  created       {}", date(d.created.as_deref()));
-    println!("  updated       {}", date(d.updated.as_deref()));
+    let _ = writeln!(out, "{}", heading("Shape"));
+    let _ = writeln!(out, "  max players   {}", d.max_players);
+    let _ = writeln!(out, "  genre         {}", genre(d));
+    let _ = writeln!(out, "  maturity      {}", maturity_line(&game.maturity));
+    let _ = writeln!(out, "  age           {}", age_line(&game.maturity));
+    let _ = writeln!(out, "  created       {}", date(d.created.as_deref()));
+    let _ = writeln!(out, "  updated       {}", date(d.updated.as_deref()));
     if let Some(price) = d.price {
-        println!("  paid access   R$ {}", thousands(price));
+        let _ = writeln!(out, "  paid access   R$ {}", thousands(price));
     }
     for descriptor in &game.maturity.descriptors {
         if let Some(name) = descriptor.display_name.as_deref() {
-            println!("  {}", dim(&format!("contains: {name}")));
+            let _ = writeln!(out, "  {}", dim(&format!("contains: {name}")));
         }
     }
-    println!();
+    let _ = writeln!(out);
 
     if !game.places.is_empty() {
-        println!("{}", heading("Places"));
+        let _ = writeln!(out, "{}", heading("Places"));
         for place in &game.places {
             let role = if place.id == d.root_place_id {
                 " (root)"
             } else {
                 ""
             };
-            println!("  {}  {}{}", place.id, place.name, role);
+            let _ = writeln!(out, "  {}  {}{}", place.id, place.name, role);
         }
-        println!(
+        let _ = writeln!(
+            out,
             "  {}",
             dim(&format!(
                 "rbx-observe places {} for published state and live servers",
                 d.id
             ))
         );
-        println!();
+        let _ = writeln!(out);
     }
 
-    println!("{}", heading("Assets"));
+    let _ = writeln!(out, "{}", heading("Assets"));
     match game.icon_asset_id {
-        Some(id) => println!("  icon          {id}"),
-        None => println!("  icon          {}", dim("asset id unavailable")),
+        Some(id) => {
+            let _ = writeln!(out, "  icon          {id}");
+        }
+        None => {
+            let _ = writeln!(out, "  icon          {}", dim("asset id unavailable"));
+        }
     }
     match game.images.banner_asset_id {
-        Some(id) => println!("  banner        {id}"),
-        None => println!("  banner        {}", dim("none")),
+        Some(id) => {
+            let _ = writeln!(out, "  banner        {id}");
+        }
+        None => {
+            let _ = writeln!(out, "  banner        {}", dim("none"));
+        }
     }
-    println!(
+    let _ = writeln!(
+        out,
         "  carousel      {} item(s), {}",
         game.media_count,
         if game.has_preview_video {
@@ -151,8 +165,10 @@ pub fn render(game: &Game) {
         .flatten()
         .collect();
     if let Some(hint) = asset_hint(&ids) {
-        println!("  {}", dim(&hint));
+        let _ = writeln!(out, "  {}", dim(&hint));
     }
+
+    out
 }
 
 /// Roblox's own taxonomy first: the legacy `genre` field says "All" on the
@@ -248,7 +264,7 @@ pub async fn run(client: &Client, universe_id: u64, json: bool) -> Result<()> {
     if json {
         println!("{}", serde_json::to_string_pretty(&game)?);
     } else {
-        render(&game);
+        print!("{}", render(&game));
     }
     Ok(())
 }
@@ -506,5 +522,46 @@ mod tests {
             }),
             " (75% approval)"
         );
+    }
+
+    #[tokio::test]
+    async fn the_rendering_is_stable() {
+        colored::control::set_override(false);
+        let server = server_with_a_full_game().await;
+        Mock::given(method("GET"))
+            .and(path("/v2/assets/777/details"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_string(
+                    r#"{"AssetTypeId":9,"AssetId":777,"IconImageAssetId":123456}"#,
+                ),
+            )
+            .mount(&server)
+            .await;
+        Mock::given(method("POST"))
+            .and(path(
+                "/experience-guidelines-api/experience-guidelines/get-age-recommendation",
+            ))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"ageRecommendationDetails":{"summary":{"ageRecommendation":
+                   {"displayName":"Minimal","minimumAge":16,"minimumAgeDisplay":"16+"}},
+                   "descriptorUsages":[{"descriptor":{"displayName":"Violence (Mild)"},
+                                        "contains":true}]}}"#,
+            ))
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v1/universes/42/places"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"data":[{"id":777,"name":"Main"},{"id":778,"name":"Tutorial"}],
+                   "nextPageCursor":null}"#,
+            ))
+            .mount(&server)
+            .await;
+
+        let game = collect(&Client::with_base_url(&server.uri()), 42)
+            .await
+            .unwrap();
+
+        insta::assert_snapshot!(render(&game));
     }
 }

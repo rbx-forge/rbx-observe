@@ -7,6 +7,8 @@
 //! which is not something to do behind someone's back on a command they ran to
 //! read a description.
 
+use std::fmt::Write;
+
 use anyhow::Result;
 use serde::Serialize;
 
@@ -76,8 +78,9 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Places> {
     })
 }
 
-pub fn render(places: &Places) {
-    println!("{}", heading("Places"));
+pub fn render(places: &Places) -> String {
+    let mut out = String::new();
+    let _ = writeln!(out, "{}", heading("Places"));
 
     for place in &places.places {
         let tags = [
@@ -93,12 +96,12 @@ pub fn render(places: &Places) {
         .collect::<Vec<_>>()
         .join(", ");
 
-        println!("  {}  {}", place.id, place.name);
-        println!("    {}", dim(&format!("[{tags}]")));
+        let _ = writeln!(out, "  {}  {}", place.id, place.name);
+        let _ = writeln!(out, "    {}", dim(&format!("[{tags}]")));
 
         let servers = &place.servers;
         if servers.servers == 0 {
-            println!("    {}", dim("no live servers"));
+            let _ = writeln!(out, "    {}", dim("no live servers"));
             continue;
         }
 
@@ -106,7 +109,8 @@ pub fn render(places: &Places) {
             .fill_rate()
             .map(|rate| format!(" · {:.0}% full", rate * 100.0))
             .unwrap_or_default();
-        println!(
+        let _ = writeln!(
+            out,
             "    {}",
             dim(&format!(
                 "{} server(s) · {} playing / {} seats{}",
@@ -118,14 +122,17 @@ pub fn render(places: &Places) {
         );
     }
 
-    println!();
-    println!(
+    let _ = writeln!(out);
+    let _ = writeln!(
+        out,
         "  {}",
         dim(
             "\"published\" is inferred from the place asset carrying a product id; \
              Roblox's own isPlayable flag needs a session"
         )
     );
+
+    out
 }
 
 pub async fn run(client: &Client, universe_id: u64, json: bool) -> Result<()> {
@@ -133,7 +140,7 @@ pub async fn run(client: &Client, universe_id: u64, json: bool) -> Result<()> {
     if json {
         println!("{}", serde_json::to_string_pretty(&places)?);
     } else {
-        render(&places);
+        print!("{}", render(&places));
     }
     Ok(())
 }
@@ -209,5 +216,63 @@ mod tests {
         assert_eq!(places.places[1].name, "Tutorial");
         assert_eq!(places.places[1].published, Some(false));
         assert_eq!(places.places[1].servers.servers, 0);
+    }
+
+    #[tokio::test]
+    async fn the_rendering_is_stable() {
+        colored::control::set_override(false);
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/v1/games"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_string(r#"{"data":[{"id":42,"rootPlaceId":777,"name":"Game"}]}"#),
+            )
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v1/universes/42/places"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"data":[{"id":777,"name":"Main"},{"id":778,"name":"Tutorial"}],
+                   "nextPageCursor":null}"#,
+            ))
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v2/assets/777/details"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_string(r#"{"AssetTypeId":9,"AssetId":777,"ProductId":5555555555555}"#),
+            )
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v2/assets/778/details"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_string(r#"{"AssetTypeId":9,"AssetId":778,"ProductId":0}"#),
+            )
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v1/games/777/servers/Public"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"data":[{"maxPlayers":8,"playing":6}],"nextPageCursor":null}"#,
+            ))
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path("/v1/games/778/servers/Public"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_string(r#"{"data":[],"nextPageCursor":null}"#),
+            )
+            .mount(&server)
+            .await;
+
+        let places = collect(&Client::with_base_url(&server.uri()), 42)
+            .await
+            .unwrap();
+
+        insta::assert_snapshot!(render(&places));
     }
 }

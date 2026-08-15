@@ -1,0 +1,13 @@
+---
+source: crates/rbx-observe/src/commands/places.rs
+expression: render(&places)
+---
+Places
+  777  Main
+    [root, published]
+    1 server(s) · 6 playing / 8 seats · 75% full
+  778  Tutorial
+    [not published]
+    no live servers
+
+  "published" is inferred from the place asset carrying a product id; Roblox's own isPlayable flag needs a session

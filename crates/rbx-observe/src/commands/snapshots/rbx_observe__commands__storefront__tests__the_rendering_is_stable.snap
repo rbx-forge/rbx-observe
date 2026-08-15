@@ -1,0 +1,15 @@
+---
+source: crates/rbx-observe/src/commands/storefront.rs
+expression: render(&store)
+---
+Game passes
+      R$ 399  VIP                               pass 1 · 2026-07-06 · icon 11
+    off sale  soulbound chest                   pass 2 · 2026-08-08 · icon 11
+
+Developer products
+       R$ 49  2X Money                          product 8 · 2026-06-29 · icon 22
+
+Summary
+  1 pass(es) and 1 product(s) on sale
+  prices        R$ 49 low · R$ 399 median · R$ 399 high
+  render icons  rbx-observe asset 11 22

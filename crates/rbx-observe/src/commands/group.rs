@@ -7,6 +7,8 @@
 
 use std::collections::HashMap;
 
+use std::fmt::Write;
+
 use anyhow::Result;
 use serde::Serialize;
 
@@ -83,11 +85,13 @@ pub async fn collect(
     })
 }
 
-pub fn render(report: &GroupReport) {
+pub fn render(report: &GroupReport) -> String {
+    let mut out = String::new();
     let g = &report.group;
 
-    println!("{}", heading(&g.name));
-    println!(
+    let _ = writeln!(out, "{}", heading(&g.name));
+    let _ = writeln!(
+        out,
         "  group {} · {} members · {}",
         g.id,
         thousands(g.member_count),
@@ -98,18 +102,19 @@ pub fn render(report: &GroupReport) {
         }
     );
     if let Some(description) = g.description.as_deref().filter(|d| !d.is_empty()) {
-        println!("  {}", dim(&truncate(description, 300)));
+        let _ = writeln!(out, "  {}", dim(&truncate(description, 300)));
     }
-    println!();
+    let _ = writeln!(out);
 
-    println!("{}", heading("Games"));
+    let _ = writeln!(out, "{}", heading("Games"));
     if report.games.is_empty() {
-        println!("  {}", dim("none public"));
+        let _ = writeln!(out, "  {}", dim("none public"));
     }
     for entry in &report.games {
         let game = &entry.game;
         let marker = if game.public { "" } else { "  [not listed]" };
-        println!(
+        let _ = writeln!(
+            out,
             "  {:>14}  {}{}",
             thousands(game.place_visits),
             game.name,
@@ -119,7 +124,8 @@ pub fn render(report: &GroupReport) {
             Some(count) => format!("{} playing now · ", thousands(count)),
             None => String::new(),
         };
-        println!(
+        let _ = writeln!(
+            out,
             "                  {}",
             dim(&format!(
                 "{playing}universe {} · updated {} · rbx-observe game {}",
@@ -129,10 +135,11 @@ pub fn render(report: &GroupReport) {
             ))
         );
     }
-    println!();
+    let _ = writeln!(out);
 
-    println!("{}", heading("Summary"));
-    println!(
+    let _ = writeln!(out, "{}", heading("Summary"));
+    let _ = writeln!(
+        out,
         "  {} game(s) shown · {} visits across them · {} playing now",
         report.games.len(),
         thousands(report.total_visits),
@@ -140,7 +147,8 @@ pub fn render(report: &GroupReport) {
     );
     if report.unlisted_count > 0 {
         let shown = report.games.iter().any(|entry| !entry.game.public);
-        println!(
+        let _ = writeln!(
+            out,
             "  {}",
             dim(&format!(
                 "{} more are not in the public listing — staging and test places Roblox \
@@ -150,6 +158,8 @@ pub fn render(report: &GroupReport) {
             ))
         );
     }
+
+    out
 }
 
 pub async fn run(client: &Client, group_id: u64, include_unlisted: bool, json: bool) -> Result<()> {
@@ -157,7 +167,7 @@ pub async fn run(client: &Client, group_id: u64, include_unlisted: bool, json: b
     if json {
         println!("{}", serde_json::to_string_pretty(&report)?);
     } else {
-        render(&report);
+        print!("{}", render(&report));
     }
     Ok(())
 }
@@ -255,5 +265,16 @@ mod tests {
             .find(|entry| entry.game.id == 3)
             .unwrap();
         assert!(!staging.game.public);
+    }
+
+    #[tokio::test]
+    async fn the_rendering_is_stable() {
+        colored::control::set_override(false);
+        let server = studio_with_one_unlisted_game().await;
+        let report = collect(&Client::with_base_url(&server.uri()), 7, false)
+            .await
+            .unwrap();
+
+        insta::assert_snapshot!(render(&report));
     }
 }

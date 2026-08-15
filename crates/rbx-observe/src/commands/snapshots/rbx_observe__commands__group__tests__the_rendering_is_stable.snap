@@ -1,0 +1,16 @@
+---
+source: crates/rbx-observe/src/commands/group.rs
+expression: render(&report)
+---
+Studio
+  group 7 · 1 200 members · approval required
+
+Games
+             900  B
+                  96 playing now · universe 2 · updated - · rbx-observe game 2
+             100  A
+                  4 playing now · universe 1 · updated - · rbx-observe game 1
+
+Summary
+  2 game(s) shown · 1 000 visits across them · 100 playing now
+  1 more are not in the public listing — staging and test places Roblox still returns anonymously (--all lists them)

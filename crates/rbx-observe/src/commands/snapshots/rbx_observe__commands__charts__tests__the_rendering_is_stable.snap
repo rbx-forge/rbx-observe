@@ -1,0 +1,15 @@
+---
+source: crates/rbx-observe/src/commands/charts.rs
+expression: render(&charts)
+---
+Top Playing Now
+  top-playing-now · 2 games
+    1.       900  A                                 universe 1 · -
+  1 more in this sort (--limit)
+
+Top Earning
+  top-earning · 1 games
+    1.        50  C                                 universe 3 · -
+
+  player counts are Roblox's own, as shown on the discovery page
+  drill in with  rbx-observe game <universe id>

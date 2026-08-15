@@ -1,5 +1,7 @@
 //! `rbx-observe storefront` — what the experience sells.
 
+use std::fmt::Write;
+
 use anyhow::Result;
 use serde::Serialize;
 
@@ -86,13 +88,15 @@ fn sort_key(price: Option<u64>, for_sale: bool) -> (bool, std::cmp::Reverse<u64>
     (!for_sale, std::cmp::Reverse(price.unwrap_or(0)))
 }
 
-pub fn render(store: &Storefront) {
-    println!("{}", heading("Game passes"));
+pub fn render(store: &Storefront) -> String {
+    let mut out = String::new();
+    let _ = writeln!(out, "{}", heading("Game passes"));
     if store.game_passes.is_empty() {
-        println!("  {}", dim("none"));
+        let _ = writeln!(out, "  {}", dim("none"));
     }
     for pass in &store.game_passes {
-        println!(
+        let _ = writeln!(
+            out,
             "  {:>10}  {:<NAME_WIDTH$}  {}",
             price(pass.price, pass.is_for_sale),
             pass.name,
@@ -104,14 +108,15 @@ pub fn render(store: &Storefront) {
             ))
         );
     }
-    println!();
+    let _ = writeln!(out);
 
-    println!("{}", heading("Developer products"));
+    let _ = writeln!(out, "{}", heading("Developer products"));
     if store.developer_products.is_empty() {
-        println!("  {}", dim("none"));
+        let _ = writeln!(out, "  {}", dim("none"));
     }
     for product in &store.developer_products {
-        println!(
+        let _ = writeln!(
+            out,
             "  {:>10}  {:<NAME_WIDTH$}  {}",
             price(product.price_in_robux, product.is_for_sale),
             product.name,
@@ -123,16 +128,18 @@ pub fn render(store: &Storefront) {
             ))
         );
     }
-    println!();
+    let _ = writeln!(out);
 
     let s = &store.summary;
-    println!("{}", heading("Summary"));
-    println!(
+    let _ = writeln!(out, "{}", heading("Summary"));
+    let _ = writeln!(
+        out,
         "  {} pass(es) and {} product(s) on sale",
         s.passes_for_sale, s.products_for_sale
     );
     if let (Some(min), Some(median), Some(max)) = (s.min_price, s.median_price, s.max_price) {
-        println!(
+        let _ = writeln!(
+            out,
             "  prices        R$ {} low · R$ {} median · R$ {} high",
             thousands(min),
             thousands(median),
@@ -152,8 +159,10 @@ pub fn render(store: &Storefront) {
         )
         .collect();
     if let Some(hint) = asset_hint(&icons) {
-        println!("  {}", dim(&hint));
+        let _ = writeln!(out, "  {}", dim(&hint));
     }
+
+    out
 }
 
 fn id_or_none(asset_id: Option<u64>) -> String {
@@ -168,7 +177,7 @@ pub async fn run(client: &Client, universe_id: u64, json: bool) -> Result<()> {
     if json {
         println!("{}", serde_json::to_string_pretty(&store)?);
     } else {
-        render(&store);
+        print!("{}", render(&store));
     }
     Ok(())
 }
@@ -230,5 +239,41 @@ mod tests {
         assert_eq!(summary.min_price, None);
         assert_eq!(summary.median_price, None);
         assert_eq!(summary.max_price, None);
+    }
+
+    #[tokio::test]
+    async fn the_rendering_is_stable() {
+        colored::control::set_override(false);
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/game-passes/v1/universes/42/game-passes"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"gamePasses":[
+                   {"id":1,"name":"VIP","price":399,"isForSale":true,
+                    "displayIconImageAssetId":11,"created":"2026-07-06T20:58:23.517Z"},
+                   {"id":2,"name":"soulbound chest","isForSale":false,
+                    "displayIconImageAssetId":11,"created":"2026-08-08T00:00:00Z"}],
+                   "nextPageToken":null}"#,
+            ))
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .and(path(
+                "/developer-products/v2/universes/42/developerproducts",
+            ))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"developerProducts":[
+                   {"ProductId":9,"DeveloperProductId":8,"Name":"2X Money","PriceInRobux":49,
+                    "IsForSale":true,"IconImageAssetId":22,"Created":"2026-06-29T06:45:43.037Z"}],
+                   "nextPageCursor":null}"#,
+            ))
+            .mount(&server)
+            .await;
+
+        let store = collect(&Client::with_base_url(&server.uri()), 42)
+            .await
+            .unwrap();
+
+        insta::assert_snapshot!(render(&store));
     }
 }

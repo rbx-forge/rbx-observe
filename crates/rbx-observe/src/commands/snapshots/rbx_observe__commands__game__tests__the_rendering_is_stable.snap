@@ -1,0 +1,34 @@
+---
+source: crates/rbx-observe/src/commands/game.rs
+expression: render(&game)
+---
+Sandbox Frontier
+  universe 42 · place 777
+  Group Northwind Studio (1) · rbx-observe group 1
+  https://www.roblox.com/games/777
+
+Audience
+  playing now   1 412
+  visits        1 540 435
+  favorites     4 678
+  votes         300 up / 100 down (75% approval)
+
+Shape
+  max players   16
+  genre         Simulation / Sandbox
+  maturity      Minimal
+  age           16+
+  created       2026-07-03
+  updated       2026-07-28
+  contains: Violence (Mild)
+
+Places
+  777  Main (root)
+  778  Tutorial
+  rbx-observe places 42 for published state and live servers
+
+Assets
+  icon          123456
+  banner        999
+  carousel      2 item(s), opens on a video
+  render icons  rbx-observe asset 123456 999

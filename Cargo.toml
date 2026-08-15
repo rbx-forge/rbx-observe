@@ -25,6 +25,13 @@ serde_json = "1"
 # mutex. Adding one back should be a considered one-line change.
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync"] }
 wiremock = "0.6"
+# Snapshot the human output: the layout is a contract with whoever reads it,
+# and a fragment assertion passes while everything around it degrades.
+insta = "1"
+# Drives the built binary, which is the only way to test the clap surface,
+# the exit codes and the messages a user actually meets.
+assert_cmd = "2"
+predicates = "3"
 
 [workspace.lints.rust]
 # Same posture as rbx-cli: an unused item is either wired up or deleted, and

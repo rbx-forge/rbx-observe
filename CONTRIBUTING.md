@@ -43,6 +43,21 @@ the same person maintains both:
   are clean. The pre-commit hook runs both; CI runs them again.
 - `cargo test --workspace` passes, and a behavior change comes with a test that
   fails without it.
+- **Tests never touch the network.** Every HTTP path goes through `wiremock`,
+  and the CLI tests use targets that fail before a request is built. A suite
+  that calls Roblox is a suite that breaks when Roblox has a bad day, from
+  everybody's CI at once.
+- **Output changes go through `insta`.** The human rendering is snapshotted
+  whole — `render()` returns a `String` for exactly that reason — because a
+  `contains()` assertion passes while everything around it degrades. When a
+  layout changes on purpose:
+
+  ```sh
+  cargo install cargo-insta   # once
+  cargo insta test --review   # or: cargo test, then cargo insta review
+  ```
+
+  The diff belongs in the PR: that is how a layout regression gets seen.
 - A user-visible change updates the README and adds a `## [Unreleased]` line to
   [CHANGELOG.md](./CHANGELOG.md).
 - No new dead code; `dead_code` is denied, and a deliberate exception carries a

@@ -8,6 +8,8 @@
 //! `rbx download`'s job in the sibling project, and it is why this tool stops
 //! at the render.
 
+use std::fmt::Write;
+
 use anyhow::Result;
 use serde::Serialize;
 
@@ -74,17 +76,22 @@ pub async fn collect(client: &Client, ids: &[u64], size: &str) -> Result<Assets>
     })
 }
 
-pub fn render(assets: &Assets) {
-    println!("{}", heading(&format!("Assets at {}", assets.size)));
+pub fn render(assets: &Assets) -> String {
+    let mut out = String::new();
+    let _ = writeln!(out, "{}", heading(&format!("Assets at {}", assets.size)));
     for entry in &assets.resolved {
         match &entry.url {
             Some(url) => {
-                println!("  {}", entry.asset_id);
-                println!("    {url}");
+                let _ = writeln!(out, "  {}", entry.asset_id);
+                let _ = writeln!(out, "    {url}");
             }
-            None => println!("  {}  {}", entry.asset_id, dim(&entry.state)),
+            None => {
+                let _ = writeln!(out, "  {}  {}", entry.asset_id, dim(&entry.state));
+            }
         }
     }
+
+    out
 }
 
 pub async fn run(client: &Client, ids: &[u64], size: &str, json: bool) -> Result<()> {
@@ -92,7 +99,7 @@ pub async fn run(client: &Client, ids: &[u64], size: &str, json: bool) -> Result
     if json {
         println!("{}", serde_json::to_string_pretty(&assets)?);
     } else {
-        render(&assets);
+        print!("{}", render(&assets));
     }
     Ok(())
 }

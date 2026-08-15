@@ -4,6 +4,8 @@
 //! permanent asset id, not a CDN hash, so every screenshot on the page can be
 //! rendered, compared across runs, or diffed against your own.
 
+use std::fmt::Write;
+
 use anyhow::Result;
 use serde::Serialize;
 
@@ -34,10 +36,11 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Media> {
     })
 }
 
-pub fn render(media: &Media) {
-    println!("{}", heading("Carousel"));
+pub fn render(media: &Media) -> String {
+    let mut out = String::new();
+    let _ = writeln!(out, "{}", heading("Carousel"));
     if media.entries.is_empty() {
-        println!("  {}", dim("empty"));
+        let _ = writeln!(out, "  {}", dim("empty"));
     }
 
     for (index, entry) in media.entries.iter().enumerate() {
@@ -49,25 +52,30 @@ pub fn render(media: &Media) {
                 .as_deref()
                 .or(entry.video_hash.as_deref())
                 .unwrap_or("-");
-            println!("  {position}. video   {title}");
-            println!("     {}", dim(&format!("ref {reference}")));
+            let _ = writeln!(out, "  {position}. video   {title}");
+            let _ = writeln!(out, "     {}", dim(&format!("ref {reference}")));
             continue;
         }
 
         match entry.image_id {
-            Some(id) => println!("  {position}. image   asset {id}"),
-            None => println!("  {position}. image   {}", dim("no asset id")),
+            Some(id) => {
+                let _ = writeln!(out, "  {position}. image   asset {id}");
+            }
+            None => {
+                let _ = writeln!(out, "  {position}. image   {}", dim("no asset id"));
+            }
         }
         if let Some(alt) = entry.alt_text.as_deref().filter(|text| !text.is_empty()) {
-            println!("     {}", dim(&format!("alt: {alt}")));
+            let _ = writeln!(out, "     {}", dim(&format!("alt: {alt}")));
         }
     }
 
-    println!();
+    let _ = writeln!(out);
     if let Some(hint) = asset_hint(&media.image_asset_ids) {
-        println!("  {}", dim(&hint));
+        let _ = writeln!(out, "  {}", dim(&hint));
     }
-    println!(
+    let _ = writeln!(
+        out,
         "  {} image(s), {}",
         media.image_asset_ids.len(),
         if media.has_preview_video {
@@ -76,6 +84,8 @@ pub fn render(media: &Media) {
             "no preview video"
         }
     );
+
+    out
 }
 
 pub async fn run(client: &Client, universe_id: u64, json: bool) -> Result<()> {
@@ -83,7 +93,7 @@ pub async fn run(client: &Client, universe_id: u64, json: bool) -> Result<()> {
     if json {
         println!("{}", serde_json::to_string_pretty(&media)?);
     } else {
-        render(&media);
+        print!("{}", render(&media));
     }
     Ok(())
 }

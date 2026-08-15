@@ -58,5 +58,11 @@ No release yet. Build from source.
 - **Docs**: [docs/commands.md](docs/commands.md) and
   [docs/endpoints.md](docs/endpoints.md), the latter carrying every endpoint's
   pagination idiom, its traps, and the measurements behind the pacing.
-- Repository skeleton: CI (fmt, clippy `-D warnings`, test, doc), contribution
-  and security files, issue templates, DCO sign-off from the first commit.
+- **85 tests, none of which touch the network.** HTTP goes through `wiremock`
+  and asserts the request that was emitted; the human rendering is snapshotted
+  whole with `insta`, since `render()` returns a `String`; and `assert_cmd`
+  drives the built binary for the clap surface, the exit codes (2 for a usage
+  error, 1 for a bad value) and the messages a user actually meets.
+- Repository skeleton: CI (fmt, clippy `-D warnings`, test, doc), a release
+  workflow on annotated tags, Dependabot for Actions, contribution and security
+  files, issue and PR templates, DCO sign-off from the first commit.
