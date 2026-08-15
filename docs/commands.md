@@ -18,7 +18,7 @@ Nothing here writes anything, and no command takes a credential.
 Everything the experience's page says about itself.
 
 ```sh
-rbx-observe game 1111111111111
+rbx-observe game <universe-id>
 rbx-observe game https://www.roblox.com/games/2222222222222221/Sandbox Frontier
 ```
 
@@ -46,7 +46,7 @@ degrades its section instead of failing the command.
 What the experience sells.
 
 ```sh
-rbx-observe storefront 1111111111111 --json
+rbx-observe storefront <universe-id> --json
 ```
 
 Game passes and developer products, each with price, id, creation date and icon
@@ -65,7 +65,7 @@ see [endpoints.md](./endpoints.md).
 What the experience rewards, and how often.
 
 ```sh
-rbx-observe badges 1111111111111
+rbx-observe badges <universe-id>
 ```
 
 Every badge with its total awards, awards in the last 24 hours, win rate, icon
@@ -82,7 +82,7 @@ these.
 The game page carousel, and the command that exists purely for asset ids.
 
 ```sh
-rbx-observe media 1111111111111 --json
+rbx-observe media <universe-id> --json
 ```
 
 Each screenshot's permanent asset id with its render URL, alt text when the
@@ -129,7 +129,7 @@ Every place in the universe, with what an anonymous caller can work out about
 each one.
 
 ```sh
-rbx-observe places 1111111111112
+rbx-observe places <universe-id>
 ```
 
 ```
@@ -155,8 +155,8 @@ of them batches.
 A studio and its catalog.
 
 ```sh
-rbx-observe group 33333333333        # from roblox.com/communities/<groupId>/...
-rbx-observe group 1111111111120 --all
+rbx-observe group <group-id>        # from roblox.com/communities/<groupId>/...
+rbx-observe group <group-id> --all
 ```
 
 Name, member count, whether it is open to join, description, then its games —
@@ -182,8 +182,8 @@ Asset ids in, image URLs out — the companion to every other command, since the
 all print asset ids.
 
 ```sh
-rbx-observe asset 4444444444444441
-rbx-observe asset 4444444444444441 4444444444444442 --size 1024x1024 --json
+rbx-observe asset <asset-id>
+rbx-observe asset <asset-id> <asset-id> --size 1024x1024 --json
 ```
 
 One batched call for as many ids as you pass. `--size` accepts `50x50`,
@@ -235,5 +235,5 @@ in the sense that fields are added rather than renamed, but this is a 0.x tool
 and that is a statement of intent, not a contract yet.
 
 ```sh
-rbx-observe storefront 1111111111111 --json | jq '.summary'
+rbx-observe storefront <universe-id> --json | jq '.summary'
 ```

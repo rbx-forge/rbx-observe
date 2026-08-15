@@ -175,8 +175,9 @@ mod tests {
         Mock::given(method("GET"))
             .and(path("/v2/assets/777/details"))
             .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_string(r#"{"AssetTypeId":9,"AssetId":777,"ProductId":5555555555555}"#),
+                ResponseTemplate::new(200).set_body_string(
+                    r#"{"AssetTypeId":9,"AssetId":777,"ProductId":5555555555555}"#,
+                ),
             )
             .mount(&server)
             .await;
@@ -241,8 +242,9 @@ mod tests {
         Mock::given(method("GET"))
             .and(path("/v2/assets/777/details"))
             .respond_with(
-                ResponseTemplate::new(200)
-                    .set_body_string(r#"{"AssetTypeId":9,"AssetId":777,"ProductId":5555555555555}"#),
+                ResponseTemplate::new(200).set_body_string(
+                    r#"{"AssetTypeId":9,"AssetId":777,"ProductId":5555555555555}"#,
+                ),
             )
             .mount(&server)
             .await;

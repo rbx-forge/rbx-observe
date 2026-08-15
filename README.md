@@ -6,11 +6,11 @@ it.
 
 ```sh
 rbx-observe charts --sort top-earning
-rbx-observe game https://www.roblox.com/games/2222222222222221/Some-Game
-rbx-observe storefront 1111111111111
-rbx-observe badges 1111111111111 --json
-rbx-observe group 33333333333
-rbx-observe asset 4444444444444441 --size 1024x1024
+rbx-observe game https://www.roblox.com/games/<place-id>/<name>
+rbx-observe storefront <universe-id>
+rbx-observe badges <universe-id> --json
+rbx-observe group <group-id>
+rbx-observe asset <asset-id> --size 1024x1024
 ```
 
 No API key. No cookie. No account. Everything it reads is what a logged-out
@@ -82,7 +82,7 @@ newer:
 git clone https://github.com/rbx-forge/rbx-observe
 cd rbx-observe
 cargo build --release
-./target/release/rbx-observe game 1111111111111
+./target/release/rbx-observe game <universe-id>
 ```
 
 ## Commands

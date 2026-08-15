@@ -127,7 +127,10 @@ mod tests {
         assert!(media.has_preview_video);
         // The video entry carries an imageId too — its poster frame. Counting
         // it as a screenshot would inflate every carousel with a video by one.
-        assert_eq!(media.image_asset_ids, vec![4444444444444443, 4444444444444444]);
+        assert_eq!(
+            media.image_asset_ids,
+            vec![4444444444444443, 4444444444444444]
+        );
     }
 
     #[tokio::test]

@@ -229,6 +229,9 @@ mod tests {
 
         assert_eq!(passes.len(), 1);
         assert_eq!(passes[0].price, Some(100));
-        assert_eq!(passes[0].display_icon_image_asset_id, Some(4444444444444445));
+        assert_eq!(
+            passes[0].display_icon_image_asset_id,
+            Some(4444444444444445)
+        );
     }
 }
