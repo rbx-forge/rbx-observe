@@ -3,7 +3,7 @@ resolver = "2"
 members = ["crates/rbx-observe"]
 
 [workspace.package]
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 # Chosen rather than derived: this tree's own dependencies are too few to
 # constrain anything yet. Revisit when a dependency actually raises it.
