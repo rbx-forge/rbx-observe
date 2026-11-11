@@ -111,3 +111,8 @@ First release. Installable through Rokit.
 - Repository skeleton: CI (fmt, clippy `-D warnings`, test, doc), a release
   workflow on annotated tags, Dependabot for Actions, contribution and security
   files, issue and PR templates, DCO sign-off from the first commit.
+
+[Unreleased]: https://github.com/rbx-forge/rbx-observe/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/rbx-forge/rbx-observe/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/rbx-forge/rbx-observe/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/rbx-forge/rbx-observe/releases/tag/v0.1.0
