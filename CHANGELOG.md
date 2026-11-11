@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The boundary says where an experience's creator stands.** `game` and
+  `snapshot` show the creator of every experience, group or user, with its id
+  and name in the text and in `--json`, as the experience's public page does.
+  That has not changed; the README now says so, and says why it is game-level:
+  nothing is followed from a user creator (no profile, presence, inventory,
+  group memberships, other games by that user or history), and a test asserts
+  that no user-keyed endpoint is called. A group's owner and roster stay
+  excluded.
+
 ## [0.3.0] - 2026-08-15
 
 ### Changed

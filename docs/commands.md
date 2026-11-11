@@ -22,6 +22,9 @@ rbx-observe game <universe-id>
 rbx-observe game https://www.roblox.com/games/2222222222222221/Sandbox Frontier
 ```
 
+- **Creator**: a group or a user, with its id and name, as the page shows
+  it. A group comes with the `rbx-observe group <id>` line that opens it; a
+  user comes with nothing further, since nothing keyed to a person is read.
 - **Description** — the page's own text, trimmed to 600 characters. `--json`
   carries it in full.
 - **Audience** — players right now, lifetime visits, favorites, up/down votes
