@@ -2,7 +2,7 @@
 //!
 //! Every endpoint reached from here is public: no API key, no cookie, no
 //! authentication of any kind. If a change to this module ever needs a
-//! credential, the change is wrong — see the boundary in the README.
+//! credential, the change is wrong: see the boundary in the README.
 
 pub mod badges;
 pub mod economy;
@@ -143,8 +143,8 @@ impl Client {
 
     /// POST one JSON document and read one back.
     ///
-    /// Exactly one endpoint needs this — the content-maturity API takes its
-    /// universe id in a body rather than a query string — and it is still a
+    /// Exactly one endpoint needs this (the content-maturity API takes its
+    /// universe id in a body rather than a query string), and it is still a
     /// read: nothing this tool sends changes anything on Roblox's side.
     pub(crate) async fn post_json<T: DeserializeOwned>(
         &self,

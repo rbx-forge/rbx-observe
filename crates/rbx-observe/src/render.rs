@@ -28,7 +28,7 @@ pub fn price(robux: Option<u64>, for_sale: bool) -> String {
     }
 }
 
-/// Cuts long free text to `limit` characters on a character boundary — game
+/// Cuts long free text to `limit` characters on a character boundary: game
 /// descriptions run to thousands of characters and are full of emoji, so
 /// slicing bytes would panic.
 pub fn truncate(text: &str, limit: usize) -> String {
@@ -66,7 +66,7 @@ pub fn dim(text: &str) -> String {
 /// into images.
 ///
 /// Printing a URL next to every id was the previous shape and it was the worst
-/// of both: long, repetitive, and not even an image link — the CDN URL cannot
+/// of both: long, repetitive, and not even an image link. The CDN URL cannot
 /// be built from an id (opaque hash, and the path segment varies by asset
 /// type), so what got printed was the API call, not the picture. Ids here, one
 /// command to resolve them.

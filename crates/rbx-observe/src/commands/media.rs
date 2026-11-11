@@ -1,4 +1,4 @@
-//! `rbx-observe media` — the game page carousel.
+//! `rbx-observe media`: the game page carousel.
 //!
 //! This is the command that exists purely for asset ids: `imageId` here is a
 //! permanent asset id, not a CDN hash, so every screenshot on the page can be
@@ -26,8 +26,8 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Media> {
     Ok(from_entries(universe_id, entries))
 }
 
-/// For a caller that already holds the carousel — `snapshot` does, through
-/// `game` — so the same entries are not fetched twice to be classified once.
+/// For a caller that already holds the carousel (`snapshot` does, through
+/// `game`), so the same entries are not fetched twice to be classified once.
 pub fn from_entries(universe_id: u64, entries: Vec<MediaEntry>) -> Media {
     Media {
         universe_id,
@@ -130,7 +130,7 @@ mod tests {
             .unwrap();
 
         assert!(media.has_preview_video);
-        // The video entry carries an imageId too — its poster frame. Counting
+        // The video entry carries an imageId too: its poster frame. Counting
         // it as a screenshot would inflate every carousel with a video by one.
         assert_eq!(
             media.image_asset_ids,

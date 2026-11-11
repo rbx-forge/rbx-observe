@@ -1,11 +1,11 @@
-//! `groups.roblox.com` and the group half of `games.roblox.com` — a studio and
+//! `groups.roblox.com` and the group half of `games.roblox.com`: a studio and
 //! the games it publishes.
 //!
 //! # What is deliberately not read here
 //!
 //! The group payload also carries an `owner` object and a `shout` whose author
 //! is a user, and the host offers `/v1/groups/{id}/roles` plus
-//! `/v1/groups/{id}/roles/{roleId}/users` — the full membership roster, and
+//! `/v1/groups/{id}/roles/{roleId}/users` (the full membership roster), and
 //! `/v2/users/{userId}/groups/roles` in the other direction. All of it is
 //! public, none of it is here: those are person-level records, and this tool
 //! reads studios and games, not people.
@@ -49,7 +49,7 @@ pub struct RootPlace {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GroupGame {
-    /// Universe id — feed it straight back to `rbx-observe game`.
+    /// Universe id: feed it straight back to `rbx-observe game`.
     pub id: u64,
     #[serde(default)]
     pub name: String,
@@ -104,7 +104,7 @@ impl Client {
     ///
     /// **The endpoint hands an anonymous caller the group's unlisted work.**
     /// Without `accessFilter`, or with `accessFilter=1`, the response includes
-    /// staging copies, test places and unreleased projects — one measured
+    /// staging copies, test places and unreleased projects: one measured
     /// group answers 2 games filtered to public and 21 unfiltered, the extra
     /// nineteen being `[STAGING]`, `[TESTING]`, `AA_TEST` and friends. Roblox
     /// serves it; that does not make it something to print by surprise.

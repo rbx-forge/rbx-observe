@@ -43,7 +43,7 @@ image.
   game catalog are all public, all easy, and all deliberately absent.
   [docs/endpoints.md](./docs/endpoints.md) lists each one with its reason,
   where somebody would look before adding it. Where the excluded field sits
-  inside a payload the tool *does* read — a group's `owner` — it is simply not
+  inside a payload the tool *does* read (a group's `owner`), it is simply not
   declared on the struct, so it never enters the process, and a test asserts
   that.
 - The creator of an experience is shown, whether a group or a user: its id
@@ -96,8 +96,8 @@ cargo build --release
 
 | Command | What it reports |
 | --- | --- |
-| `rbx-observe charts` | Roblox's own rankings — top playing, top earning, up-and-coming, and the fourteen trending-by-category sorts. The command that hands out universe ids |
-| `rbx-observe snapshot <target>` | Every section below in one run, and with `--json` one timestamped document — the artifact to keep and compare later |
+| `rbx-observe charts` | Roblox's own rankings: top playing, top earning, up-and-coming, and the fourteen trending-by-category sorts. The command that hands out universe ids |
+| `rbx-observe snapshot <target>` | Every section below in one run, and with `--json` one timestamped document, the artifact to keep and compare later |
 | `rbx-observe game <target>` | Creator (group or user, id and name, as the page shows it), description, players, visits, favorites, votes, genre, maturity label and content descriptors, every place in the universe, icon and banner asset ids, carousel size, preview video |
 | `rbx-observe storefront <target>` | Game passes and developer products: prices, ids, icon asset ids, and the low/median/high of what is actually on sale |
 | `rbx-observe badges <target>` | Every badge with total awards, awards in the last day, win rate and icon asset id, most-awarded first |
@@ -125,7 +125,7 @@ Universe ids, place ids and asset ids are different numbers for different
 things and none of them is recognisable by looking at it. A game URL carries a
 **place** id; nearly every endpoint takes a **universe** id.
 
-Getting it wrong does not fail loudly — `economy.roblox.com` answers `200` with
+Getting it wrong does not fail loudly: `economy.roblox.com` answers `200` with
 somebody else's asset when handed a universe id. So `rbx-observe` converts once
 at the entry point, and refuses any place-asset response that is not actually a
 Place. That guard has its own test.
