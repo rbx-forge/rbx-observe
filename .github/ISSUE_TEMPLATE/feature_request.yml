@@ -7,7 +7,7 @@ body:
       value: |
         **Read the boundary first:**
         [game-level public data only, never person-level](https://github.com/rbx-forge/rbx-observe#the-boundary-which-does-not-move).
-        A request that crosses it is declined regardless of how it is framed —
+        A request that crosses it is declined regardless of how it is framed:
         that line is the point of the project, not an obstacle in it.
 
         Solo-maintained. Issues are triaged, not promised.
