@@ -25,23 +25,23 @@ rbx-observe game https://www.roblox.com/games/2222222222222221/Sandbox Frontier
 - **Creator**: a group or a user, with its id and name, as the page shows
   it. A group comes with the `rbx-observe group <id>` line that opens it; a
   user comes with nothing further, since nothing keyed to a person is read.
-- **Description** — the page's own text, trimmed to 600 characters. `--json`
+- **Description**: the page's own text, trimmed to 600 characters. `--json`
   carries it in full.
-- **Audience** — players right now, lifetime visits, favorites, up/down votes
+- **Audience**: players right now, lifetime visits, favorites, up/down votes
   with an approval percentage.
-- **Shape** — max players, Roblox's own genre taxonomy (`genre_l1 / genre_l2`,
+- **Shape**: max players, Roblox's own genre taxonomy (`genre_l1 / genre_l2`,
   not the legacy `genre` field that says "All" almost everywhere), the
   **maturity label** (`Minimal`, `Mild (9+)`, …) with the content descriptors
   behind it, creation and last-update dates, paid-access price if there is one.
-- **Places** — every place in the universe, not just the root one the page
+- **Places**: every place in the universe, not just the root one the page
   shows: a tutorial, a lobby, a staging copy. Roblox does **not** expose
   per-place public/private anonymously, and the output says so rather than
   guessing.
-- **Assets** — the icon's asset id, the banner's asset id, the carousel size,
+- **Assets**: the icon's asset id, the banner's asset id, the carousel size,
   and whether the page opens on a video.
 
-Eight endpoints across five hosts. Three of them are enrichments — the icon
-asset id, the maturity label, the place list — and a failure on any of those
+Eight endpoints across five hosts. Three of them are enrichments (the icon
+asset id, the maturity label, the place list), and a failure on any of those
 degrades its section instead of failing the command.
 
 ## `storefront`
@@ -60,7 +60,7 @@ The summary counts **for-sale items only**. An off-sale pass at R$ 1 000 is a
 leftover, and letting it set the maximum makes the whole row lie. `free` and
 `off sale` stay distinct for the same reason.
 
-Both catalogs are fully paginated, and the two endpoints paginate differently —
+Both catalogs are fully paginated, and the two endpoints paginate differently:
 see [endpoints.md](./endpoints.md).
 
 ## `badges`
@@ -72,7 +72,7 @@ rbx-observe badges <universe-id>
 ```
 
 Every badge with its total awards, awards in the last 24 hours, win rate, icon
-asset id and creation date, ordered most-awarded first — on a game with forty
+asset id and creation date, ordered most-awarded first: on a game with forty
 badges the tail is onboarding noise and the head is what players actually
 reach. Disabled badges are listed and marked rather than hidden.
 
@@ -95,7 +95,7 @@ would otherwise inflate every carousel with a video by one.
 
 ## `charts`
 
-What Roblox is pushing right now. **The discovery command** — every other one
+What Roblox is pushing right now. **The discovery command**: every other one
 needs a universe id, this one hands them out.
 
 ```sh
@@ -113,7 +113,7 @@ Top Earning
 
 Roughly 26 rankings over 5 pages. The obvious ones are on page one
 (`top-trending`, `up-and-coming`, `top-playing-now`); the ones worth the walk
-are further in — **`top-earning` is a revenue proxy Roblox publishes for
+are further in: **`top-earning` is a revenue proxy Roblox publishes for
 free**, and the fourteen `trending-in-<category>` sorts are its real genre
 taxonomy, which the `genre` field on a game does not give you.
 
@@ -137,7 +137,7 @@ rbx-observe snapshot <universe-id> --places --json   # slower, see below
 
 **It prints every section**: the game, its storefront, its badges, its
 carousel, the places when asked, and an "At a glance" block at the end. Around
-a hundred lines on a mid-sized experience — one run instead of five.
+a hundred lines on a mid-sized experience, in one run instead of five.
 
 `--summary` reduces it to that final block alone. `--json` carries the whole
 thing as one document: the full game detail, every pass and product, every
@@ -153,7 +153,7 @@ triples the run.
 
 This is what makes comparison possible: one file per experience per day, and a
 `diff` later tells you what a competitor changed. The tool does not do that
-comparison for you yet — deciding what counts as a change (a price move, yes; a
+comparison for you yet: deciding what counts as a change (a price move, yes; a
 visit counter, no) is a conversation to have over real snapshots.
 
 ## `places`
@@ -178,7 +178,7 @@ Places
 `published` is an **inference**, not a Roblox flag: a place carries a product
 id once it has been published to the site, and an internal one carries zero.
 The authoritative `isPlayable` needs a session. The live fleet is the
-corroborating signal — an internal place generally has no servers.
+corroborating signal: an internal place generally has no servers.
 
 Separate from `game` because it costs two extra requests per place, and neither
 of them batches.
@@ -192,14 +192,14 @@ rbx-observe group <group-id>        # from roblox.com/communities/<groupId>/...
 rbx-observe group <group-id> --all
 ```
 
-Name, member count, whether it is open to join, description, then its games —
+Name, member count, whether it is open to join, description, then its games:
 lifetime visits, **players right now**, and the `rbx-observe game <id>` line
 that drills into each one. The whole catalog's live players cost one request,
 not one per game: the details endpoint takes 50 universe ids at a time.
 
 **Unlisted games are counted and, by default, not named.** Roblox hands an
 anonymous caller a group's staging copies, test places and unreleased projects
-— one measured group returns 2 games filtered to public and 21 unfiltered. The
+(one measured group returns 2 games filtered to public and 21 unfiltered). The
 summary always says how many there are; `--all` prints them, marked
 `[not listed]`.
 
@@ -211,7 +211,7 @@ person's output rather than a studio's.
 
 ## `asset`
 
-Asset ids in, image URLs out — the companion to every other command, since they
+Asset ids in, image URLs out: the companion to every other command, since they
 all print asset ids.
 
 ```sh
@@ -225,7 +225,7 @@ and is validated before any request goes out.
 
 **A URL is only reported for a completed render.** A nonexistent id, or one
 naming something with no image, comes back from Roblox as `state: "Error"`
-*with* an `imageUrl` — the grey placeholder, identical for every bad id. Those
+*with* an `imageUrl`, the grey placeholder, identical for every bad id. Those
 rows print their state instead:
 
 ```
@@ -245,7 +245,7 @@ behind `assetdelivery.roblox.com`, which requires a session.
 
 One line per item, everywhere: a right-aligned number (price, awards, players),
 the name, then ids in grey. **No URLs.** An asset id is printed as an id and
-`rbx-observe asset` turns it into an image — the CDN URL cannot be built from
+`rbx-observe asset` turns it into an image. The CDN URL cannot be built from
 an id anyway (opaque hash, and the path segment varies by asset type), so a URL
 printed on every row would have been the API call rather than the picture.
 
@@ -257,8 +257,15 @@ Each listing ends with the command that renders its icons:
 
 ## Exit codes
 
-`0` on success, `1` on any error. There is no drift concept here — nothing is
-being reconciled, so there is no third state to report.
+- `0` on success, including `--help` and `--version`.
+- `2` on a usage error, refused before any request: an unknown command, a
+  missing argument, a value clap rejects such as a `--size` outside the list.
+- `1` on any other error: a target that is not a universe id, a place id or a
+  game URL, an id of `0`, an experience Roblox does not know, or a request
+  that still fails after its retries.
+
+There is no drift code: nothing is being reconciled, so there is no other
+state to report.
 
 ## `--json`
 
