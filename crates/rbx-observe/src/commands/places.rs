@@ -1,4 +1,4 @@
-//! `rbx-observe places` — every place in a universe, with what can be inferred
+//! `rbx-observe places`: every place in a universe, with what can be inferred
 //! about each one.
 //!
 //! Separate from `game` because it costs two extra requests **per place**: the
@@ -31,7 +31,7 @@ pub struct PlaceStatus {
     /// Inferred from the place asset carrying a product id. `None` when the
     /// place asset could not be read at all.
     ///
-    /// This is an inference, not a Roblox flag — the authoritative
+    /// This is an inference, not a Roblox flag: the authoritative
     /// `isPlayable` needs a session. See `api::economy::AssetDetails`.
     pub published: Option<bool>,
     pub servers: ServerSummary,
@@ -44,7 +44,7 @@ pub async fn collect(client: &Client, universe_id: u64) -> Result<Places> {
 }
 
 /// The same work for a caller that already holds the root place id and the
-/// place list — `snapshot` does, and re-fetching both would be two requests
+/// place list (`snapshot` does), and re-fetching both would be two requests
 /// spent on answers it is already holding.
 pub async fn collect_with(
     client: &Client,

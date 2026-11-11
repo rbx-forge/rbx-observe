@@ -1,4 +1,4 @@
-//! `games.roblox.com` — the experience itself, plus the place → universe
+//! `games.roblox.com`: the experience itself, plus the place → universe
 //! lookup that lives on `apis.roblox.com`.
 
 use anyhow::{Context, Result};
@@ -74,7 +74,7 @@ pub struct MediaEntry {
     pub asset_type_id: u64,
     #[serde(default)]
     pub asset_type: Option<String>,
-    /// A real, permanent asset id — unlike the CDN hashes the thumbnail
+    /// A real, permanent asset id. Unlike the CDN hashes the thumbnail
     /// endpoints hand back, this one can be fed to any asset API.
     #[serde(default)]
     pub image_id: Option<u64>,
@@ -123,7 +123,7 @@ impl Client {
     /// Details for many universes in as few requests as the endpoint allows.
     ///
     /// Ids Roblox has nothing for are simply absent from the response, so the
-    /// result is not positionally aligned with the input — callers match on
+    /// result is not positionally aligned with the input: callers match on
     /// `id`.
     pub async fn game_details(&self, universe_ids: &[u64]) -> Result<Vec<GameDetail>> {
         let url = format!("{}/v1/games", self.hosts().games);
@@ -154,7 +154,7 @@ impl Client {
             .with_context(|| {
                 format!(
                     "No experience with universe id {universe_id}. If that number came from a \
-                     game URL it is a place id — pass --place."
+                     game URL it is a place id: pass --place."
                 )
             })
     }
@@ -170,7 +170,7 @@ impl Client {
         Ok(body.data.into_iter().next().unwrap_or_default())
     }
 
-    /// The game page carousel. One request per experience — this endpoint
+    /// The game page carousel. One request per experience: this endpoint
     /// takes no batch, which is why anything doing bulk work should treat it
     /// as the expensive one.
     pub async fn media(&self, universe_id: u64) -> Result<Vec<MediaEntry>> {

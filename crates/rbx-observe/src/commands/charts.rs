@@ -1,8 +1,8 @@
-//! `rbx-observe charts` — what Roblox is currently pushing.
+//! `rbx-observe charts`: what Roblox is currently pushing.
 //!
 //! The discovery command: every other one needs a universe id, this one hands
-//! them out. `top-earning` is the interesting column — a revenue proxy Roblox
-//! publishes for free — and the `trending-in-<category>` sorts are its real
+//! them out. `top-earning` is the interesting column (a revenue proxy Roblox
+//! publishes for free), and the `trending-in-<category>` sorts are its real
 //! genre taxonomy.
 
 use std::fmt::Write;

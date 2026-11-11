@@ -1,4 +1,4 @@
-//! `economy.roblox.com` — asset details for a place.
+//! `economy.roblox.com`: asset details for a place.
 //!
 //! One field justifies this host: `IconImageAssetId`. It is the only public
 //! way to get the **asset id** of an experience's icon. The
@@ -59,7 +59,7 @@ impl Client {
     ///
     /// **Takes a place id, never a universe id.** The two are separate
     /// numbering spaces and this endpoint does not police the difference: a
-    /// universe id returns `200` with a completely unrelated asset — someone
+    /// universe id returns `200` with a completely unrelated asset: someone
     /// else's t-shirt, with a plausible name and a real creator. The
     /// `AssetTypeId` guard below is the only thing standing between that and a
     /// confidently wrong answer, which is why it is an error rather than a
@@ -111,8 +111,8 @@ mod tests {
     async fn a_product_id_separates_a_published_place_from_an_internal_one() {
         let server = MockServer::start().await;
         // The two shapes one universe really answers with: a published root
-        // place, and a `Tutorial` place that is not. Ids are invented — this
-        // repository does not carry other people's identifiers — the fields
+        // place, and a `Tutorial` place that is not. Ids are invented (this
+        // repository does not carry other people's identifiers); the fields
         // and their values are what was measured.
         Mock::given(method("GET"))
             .and(path("/v2/assets/2222222222222222/details"))

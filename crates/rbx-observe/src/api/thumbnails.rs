@@ -1,4 +1,4 @@
-//! `thumbnails.roblox.com` — rendered images.
+//! `thumbnails.roblox.com`: rendered images.
 //!
 //! Two endpoints that look interchangeable and are not:
 //!
@@ -85,7 +85,7 @@ impl Client {
     /// uploaded file rather than a render, answers 401 anonymously.
     ///
     /// `targetId` is the asset id here, so the mapping back to the input is
-    /// direct — unlike the games/icons endpoint, where it is the universe id.
+    /// direct, unlike the games/icons endpoint, where it is the universe id.
     pub async fn asset_thumbnails(&self, ids: &[u64], size: &str) -> Result<Vec<Thumbnail>> {
         let url = format!("{}/v1/assets", self.hosts().thumbnails);
         let mut out = Vec::with_capacity(ids.len());

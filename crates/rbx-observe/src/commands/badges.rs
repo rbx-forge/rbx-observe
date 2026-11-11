@@ -1,4 +1,4 @@
-//! `rbx-observe badges` — what the experience rewards, and how often.
+//! `rbx-observe badges`: what the experience rewards, and how often.
 
 use std::fmt::Write;
 

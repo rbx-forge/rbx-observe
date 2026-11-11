@@ -1,4 +1,4 @@
-//! `apis.roblox.com/experience-guidelines-api` — the maturity label the game
+//! `apis.roblox.com/experience-guidelines-api`: the maturity label the game
 //! page shows above the description ("Minimal", "Mild", "Moderate",
 //! "Restricted") and the content descriptors behind it.
 //!

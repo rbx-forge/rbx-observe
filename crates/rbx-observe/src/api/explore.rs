@@ -1,11 +1,11 @@
-//! `apis.roblox.com/explore-api` — the discovery page's own rankings.
+//! `apis.roblox.com/explore-api`: the discovery page's own rankings.
 //!
 //! The one endpoint here that hands out universe ids rather than needing one,
 //! which makes it the entry point to every other command: you cannot observe a
 //! category you cannot enumerate.
 //!
 //! Page one carries the six obvious sorts. The rest of the pages carry the ones
-//! that differentiate the tool — `top-earning` is a revenue proxy Roblox
+//! that differentiate the tool: `top-earning` is a revenue proxy Roblox
 //! publishes for free, and the fourteen `trending-in-<category>` sorts are its
 //! real genre taxonomy, which the `genre` field on a game does not give you.
 

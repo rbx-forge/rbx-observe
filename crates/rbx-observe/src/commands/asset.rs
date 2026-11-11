@@ -1,10 +1,10 @@
-//! `rbx-observe asset` — asset ids in, image URLs out.
+//! `rbx-observe asset`: asset ids in, image URLs out.
 //!
 //! The companion to every other command: they print asset ids, this turns any
 //! of them into something you can open or download, in one batched call.
 //!
 //! It resolves the **rendered** image. The original uploaded file lives behind
-//! `assetdelivery.roblox.com`, which answers 401 without a session — fetching
+//! `assetdelivery.roblox.com`, which answers 401 without a session: fetching
 //! that needs a credential, so this tool stops at the render.
 
 use std::fmt::Write;
@@ -46,7 +46,7 @@ pub async fn collect(client: &Client, ids: &[u64], size: &str) -> Result<Assets>
             {
                 // Only a `Completed` render is a real URL. An id that does
                 // not exist, or names something with no image, comes back as
-                // `Error` **with an imageUrl** — the grey "no thumbnail"
+                // `Error` **with an imageUrl**, the grey "no thumbnail"
                 // placeholder, byte-identical for every bad id. Passing that
                 // through would hand back a working link for a wrong id,
                 // which is worse than saying nothing.

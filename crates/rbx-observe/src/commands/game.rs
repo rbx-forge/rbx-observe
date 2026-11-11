@@ -1,4 +1,4 @@
-//! `rbx-observe game` — what the experience's page says about itself.
+//! `rbx-observe game`: what the experience's page says about itself.
 
 use std::fmt::Write;
 
@@ -21,7 +21,7 @@ pub struct Game {
     /// Every place in the universe, not just the root one the page shows.
     pub places: Vec<Place>,
     /// Asset id of the experience icon, from the place asset. `None` when the
-    /// place asset could not be read — the rest of the report is still worth
+    /// place asset could not be read: the rest of the report is still worth
     /// printing, so this is not an error.
     pub icon_asset_id: Option<u64>,
     /// The carousel itself, not just its size: a caller that already has this
@@ -334,7 +334,7 @@ mod tests {
     async fn collect_joins_five_endpoints_into_one_report() {
         let server = server_with_a_full_game().await;
         // The place asset is read with the root place id from `detail`, not
-        // the universe id — the guard in `api::economy` would refuse it.
+        // the universe id: the guard in `api::economy` would refuse it.
         Mock::given(method("GET"))
             .and(path("/v2/assets/777/details"))
             .respond_with(

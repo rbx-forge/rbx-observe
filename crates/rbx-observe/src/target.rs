@@ -3,7 +3,7 @@
 //! Three numbering spaces meet in this tool and none of them is checkable by
 //! looking at the number: universe ids, place ids, and asset ids. A game URL
 //! carries a **place** id; every read endpoint here takes a **universe** id.
-//! Getting that wrong does not fail loudly — see `api::economy` — so the
+//! Getting that wrong does not fail loudly (see `api::economy`), so the
 //! conversion happens once, here, rather than being assumed anywhere else.
 
 use anyhow::{bail, Context, Result};
