@@ -14,7 +14,7 @@ That is the one non-negotiable in this repository.
 git clone https://github.com/rbx-forge/rbx-observe
 cd rbx-observe
 lefthook install          # one-time: pre-commit runs cargo fmt + clippy
-cargo test --workspace
+cargo test -p rbx-observe
 ```
 
 MSRV is Rust 1.88. No credentials are needed to build, test, or run: the tool
@@ -38,16 +38,16 @@ House style:
 
 ## What makes a PR mergeable
 
-- `cargo fmt --all` and `cargo clippy --workspace --all-targets -- -D warnings`
+- `cargo fmt --all` and `cargo clippy -p rbx-observe --all-targets -- -D warnings`
   are clean. The pre-commit hook runs both; CI runs them again.
-- `cargo test --workspace` passes, and a behavior change comes with a test that
+- `cargo test -p rbx-observe` passes, and a behavior change comes with a test that
   fails without it.
 - **Tests never touch the network.** Every HTTP path goes through `wiremock`,
   and the CLI tests use targets that fail before a request is built. A suite
   that calls Roblox is a suite that breaks when Roblox has a bad day, from
   everybody's CI at once.
 - **Output changes go through `insta`.** The human rendering is snapshotted
-  whole — `render()` returns a `String` for exactly that reason — because a
+  whole (`render()` returns a `String` for exactly that reason), because a
   `contains()` assertion passes while everything around it degrades. When a
   layout changes on purpose:
 
@@ -72,7 +72,7 @@ Every commit must be signed off:
 git commit -s -m "feat: ..."
 ```
 
-which appends `Signed-off-by: Your Name <your.email@example.com>` — your
+which appends `Signed-off-by: Your Name <your.email@example.com>`, your
 statement that you have the right to contribute the patch under this project's
 license. Full text at <https://developercertificate.org/>. A missing sign-off
 is fixed with `git commit --amend -s` and a force-push.
@@ -82,7 +82,7 @@ No copyright assignment is asked for. You keep your copyright.
 ## Licensing
 
 [MPL-2.0](./LICENSE), file-level copyleft. If you adapt code from another
-project, say so in the PR and add its notice to a `THIRD-PARTY-NOTICES.md` — a
+project, say so in the PR and add its notice to a `THIRD-PARTY-NOTICES.md`: a
 doc-comment credit is not a license notice. MIT and Apache-2.0 sources are fine
 with the notice; GPL-family sources are not compatible and will be declined.
 
@@ -92,9 +92,12 @@ with the notice; GPL-family sources are not compatible and will be declined.
 step one rather than an afterthought.
 
 1. Bump `[workspace.package].version` in the root `Cargo.toml`, then
-   `cargo check` to refresh `Cargo.lock`.
+   `cargo check -p rbx-observe` to refresh `Cargo.lock`.
 2. Move the `## [Unreleased]` content to `## [X.Y.Z] - YYYY-MM-DD` in
-   [CHANGELOG.md](./CHANGELOG.md).
+   [CHANGELOG.md](./CHANGELOG.md), and update the link lines at its bottom:
+   point `[Unreleased]` at `compare/vX.Y.Z...HEAD` and add
+   `[X.Y.Z]: https://github.com/rbx-forge/rbx-observe/compare/vPREVIOUS...vX.Y.Z`
+   above the previous release's line.
 3. Commit, then tag and push:
    `git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin main --follow-tags`
 
