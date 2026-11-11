@@ -188,15 +188,19 @@ mod tests {
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
     async fn one_experience() -> MockServer {
+        one_experience_by(r#"{"id":33333333333,"name":"A Studio","type":"Group"}"#).await
+    }
+
+    async fn one_experience_by(creator: &str) -> MockServer {
         let server = MockServer::start().await;
 
         Mock::given(method("GET"))
             .and(path("/v1/games"))
-            .respond_with(ResponseTemplate::new(200).set_body_string(
-                r#"{"data":[{"id":1111111111111,"rootPlaceId":2222222222222221,"name":"A Game",
-                   "creator":{"id":33333333333,"name":"A Studio","type":"Group"},
-                   "playing":120,"visits":45000,"favoritedCount":900,"maxPlayers":16}]}"#,
-            ))
+            .respond_with(ResponseTemplate::new(200).set_body_string(format!(
+                r#"{{"data":[{{"id":1111111111111,"rootPlaceId":2222222222222221,"name":"A Game",
+                   "creator":{creator},
+                   "playing":120,"visits":45000,"favoritedCount":900,"maxPlayers":16}}]}}"#
+            )))
             // The point of the command: `game` fetched the details, and no
             // other section asks for them again.
             .expect(1)
@@ -325,6 +329,56 @@ mod tests {
         assert_eq!(places.places.len(), 1);
         assert!(places.places[0].is_root);
         assert_eq!(places.places[0].servers.playing, 12);
+    }
+
+    #[tokio::test]
+    async fn a_user_creator_is_shown_and_no_person_is_looked_up() {
+        colored::control::set_override(false);
+        // Invented id and name, in the shape Roblox sends for a user-owned
+        // experience.
+        let server = one_experience_by(
+            r#"{"id":1234567890,"name":"PlaceholderUser","type":"User",
+                "isRNVAccount":false,"hasVerifiedBadge":true}"#,
+        )
+        .await;
+        Mock::given(method("GET"))
+            .and(path("/v1/games/2222222222222221/servers/Public"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_string(r#"{"data":[],"nextPageCursor":null}"#),
+            )
+            .mount(&server)
+            .await;
+
+        // `--places` too, so the run makes every request `snapshot` can make.
+        let snapshot = collect(&Client::with_base_url(&server.uri()), 1111111111111, true)
+            .await
+            .unwrap();
+
+        let full = render(&snapshot);
+        assert!(
+            full.contains("  User PlaceholderUser (1234567890)\n"),
+            "{full}"
+        );
+        let json = serde_json::to_value(&snapshot).unwrap();
+        assert_eq!(
+            json["game"]["detail"]["creator"],
+            serde_json::json!({"id": 1234567890, "name": "PlaceholderUser", "type": "User"})
+        );
+        // The attribution appears once in the full rendering and not at all
+        // in the summary: it is part of the game section, not repeated.
+        assert_eq!(full.matches("PlaceholderUser").count(), 1, "{full}");
+        let summary = render_summary(&snapshot);
+        assert!(!summary.contains("PlaceholderUser"), "{summary}");
+
+        // Nothing keyed to a person was requested on the way.
+        for request in server.received_requests().await.unwrap() {
+            let target = request.url.as_str();
+            assert!(!target.contains("/users"), "user-keyed request: {target}");
+            assert!(
+                !target.contains("1234567890"),
+                "request about the creator: {target}"
+            );
+        }
     }
 
     #[tokio::test]

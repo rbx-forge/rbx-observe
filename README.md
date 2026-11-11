@@ -46,6 +46,12 @@ image.
   inside a payload the tool *does* read — a group's `owner` — it is simply not
   declared on the struct, so it never enters the process, and a test asserts
   that.
+- The creator of an experience is shown, whether a group or a user: its id
+  and name, as the experience's own public page shows them. That describes the
+  game, not the person. Nothing is followed from it: no profile, no presence,
+  no inventory, no group memberships, no other games by that user, no history.
+  For a user-owned experience the attribution is the end of the trail, and a
+  test asserts that no user-keyed endpoint is called.
 - Polite rate limiting: paced requests that widen on every 429, and no "mirror
   the whole catalog" mode. It asks about experiences you name, one at a time.
 - No credential of any kind, which is the same constraint from the other side:
@@ -92,7 +98,7 @@ cargo build --release
 | --- | --- |
 | `rbx-observe charts` | Roblox's own rankings — top playing, top earning, up-and-coming, and the fourteen trending-by-category sorts. The command that hands out universe ids |
 | `rbx-observe snapshot <target>` | Every section below in one run, and with `--json` one timestamped document — the artifact to keep and compare later |
-| `rbx-observe game <target>` | Description, players, visits, favorites, votes, genre, maturity label and content descriptors, every place in the universe, icon and banner asset ids, carousel size, preview video |
+| `rbx-observe game <target>` | Creator (group or user, id and name, as the page shows it), description, players, visits, favorites, votes, genre, maturity label and content descriptors, every place in the universe, icon and banner asset ids, carousel size, preview video |
 | `rbx-observe storefront <target>` | Game passes and developer products: prices, ids, icon asset ids, and the low/median/high of what is actually on sale |
 | `rbx-observe badges <target>` | Every badge with total awards, awards in the last day, win rate and icon asset id, most-awarded first |
 | `rbx-observe media <target>` | Carousel screenshots as permanent asset ids, with the preview video if there is one |

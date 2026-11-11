@@ -58,6 +58,12 @@ endpoints need.
 `genre` is the legacy field and says `All` on the large majority of
 experiences. `genre_l1` / `genre_l2` are the ones worth reading.
 
+`creator` is read as `id`, `name` and `type` (`Group` or `User`), which is the
+attribution the experience's public page shows. The flags beside them
+(`isRNVAccount`, `hasVerifiedBadge`) are not declared. For a group, the id
+leads to `rbx-observe group`; for a user it leads nowhere, because every
+endpoint keyed to that account is in the list at the end of this page.
+
 ## Votes
 
 ```http

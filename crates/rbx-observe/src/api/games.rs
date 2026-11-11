@@ -6,6 +6,10 @@ use serde::{Deserialize, Serialize};
 
 use super::Client;
 
+/// The attribution the experience's public page shows, group or user alike:
+/// it describes the game. The account flags Roblox sends beside it
+/// (`isRNVAccount`, `hasVerifiedBadge`) are not declared, and nothing keyed
+/// to a user is ever requested from here.
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Creator {

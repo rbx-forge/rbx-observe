@@ -278,17 +278,21 @@ mod tests {
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
     async fn server_with_a_full_game() -> MockServer {
+        server_with_a_game_by(r#"{"id":1,"name":"Northwind Studio","type":"Group"}"#).await
+    }
+
+    async fn server_with_a_game_by(creator: &str) -> MockServer {
         let server = MockServer::start().await;
 
         Mock::given(method("GET"))
             .and(path("/v1/games"))
-            .respond_with(ResponseTemplate::new(200).set_body_string(
-                r#"{"data":[{"id":42,"rootPlaceId":777,"name":"Sandbox Frontier",
-                   "creator":{"id":1,"name":"Northwind Studio","type":"Group"},
+            .respond_with(ResponseTemplate::new(200).set_body_string(format!(
+                r#"{{"data":[{{"id":42,"rootPlaceId":777,"name":"Sandbox Frontier",
+                   "creator":{creator},
                    "playing":1412,"visits":1540435,"favoritedCount":4678,"maxPlayers":16,
                    "created":"2026-07-03T17:35:39.839Z","updated":"2026-07-28T20:44:59Z",
-                   "genre_l1":"Simulation","genre_l2":"Sandbox"}]}"#,
-            ))
+                   "genre_l1":"Simulation","genre_l2":"Sandbox"}}]}}"#
+            )))
             .mount(&server)
             .await;
         Mock::given(method("GET"))
@@ -486,6 +490,79 @@ mod tests {
         assert_eq!(creator_line(&user), "User someone (99)");
 
         assert_eq!(creator_line(&Creator::default()), "creator unknown");
+    }
+
+    /// Asserts on every request a run made: none of them may be keyed to a
+    /// person. `with_base_url` points every host at the mock, so this list is
+    /// the complete traffic of the run.
+    async fn assert_no_person_was_looked_up(server: &MockServer) {
+        let requests = server.received_requests().await.unwrap();
+        assert!(!requests.is_empty());
+        for request in &requests {
+            let target = request.url.as_str();
+            assert!(!target.contains("/users"), "user-keyed request: {target}");
+            assert!(
+                !target.contains("1234567890"),
+                "request about the creator: {target}"
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn a_user_creator_is_shown_as_the_page_shows_it_and_nothing_more() {
+        colored::control::set_override(false);
+        // The shape Roblox sends for a user-owned experience. The id and the
+        // name are invented; the two flags beside them are the real fields.
+        let server = server_with_a_game_by(
+            r#"{"id":1234567890,"name":"PlaceholderUser","type":"User",
+                "isRNVAccount":false,"hasVerifiedBadge":true}"#,
+        )
+        .await;
+
+        let game = collect(&Client::with_base_url(&server.uri()), 42)
+            .await
+            .unwrap();
+
+        // The creator is game-level: the experience's public page prints it.
+        let text = render(&game);
+        assert!(
+            text.contains("  User PlaceholderUser (1234567890)\n"),
+            "{text}"
+        );
+
+        // Exactly the attribution, in `--json` too: no account flag rides
+        // along, and no drill-down into the account is offered.
+        let json = serde_json::to_value(&game).unwrap();
+        assert_eq!(
+            json["detail"]["creator"],
+            serde_json::json!({"id": 1234567890, "name": "PlaceholderUser", "type": "User"})
+        );
+        assert!(!text.contains("rbx-observe group 1234567890"), "{text}");
+
+        // And nothing else about that person was asked for.
+        assert_no_person_was_looked_up(&server).await;
+    }
+
+    #[tokio::test]
+    async fn a_group_creator_is_shown_with_the_command_that_opens_it() {
+        colored::control::set_override(false);
+        let server = server_with_a_full_game().await;
+
+        let game = collect(&Client::with_base_url(&server.uri()), 42)
+            .await
+            .unwrap();
+
+        let text = render(&game);
+        assert!(
+            text.contains("  Group Northwind Studio (1) · rbx-observe group 1\n"),
+            "{text}"
+        );
+        let json = serde_json::to_value(&game).unwrap();
+        assert_eq!(
+            json["detail"]["creator"],
+            serde_json::json!({"id": 1, "name": "Northwind Studio", "type": "Group"})
+        );
+        assert_no_person_was_looked_up(&server).await;
     }
 
     #[test]
