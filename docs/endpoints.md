@@ -58,11 +58,13 @@ endpoints need.
 `genre` is the legacy field and says `All` on the large majority of
 experiences. `genre_l1` / `genre_l2` are the ones worth reading.
 
-`creator` is read as `id`, `name` and `type` (`Group` or `User`), which is the
-attribution the experience's public page shows. The flags beside them
-(`isRNVAccount`, `hasVerifiedBadge`) are not declared. For a group, the id
-leads to `rbx-observe group`; for a user it leads nowhere, because every
-endpoint keyed to that account is in the list at the end of this page.
+`creator` is read as `id`, `name` and `type` (`Group` or `User`), and that is
+what the tool prints: for a user, the account name and its numeric id. The
+flags beside them (`isRNVAccount`, `hasVerifiedBadge`) are not declared. For a
+group, the id leads to `rbx-observe group`; for a user it leads nowhere. No
+request the tool makes is keyed to a user, and the list at the end of this page
+names the user-keyed endpoints closest to hand, including the ones on hosts the
+tool already calls.
 
 ## Votes
 
@@ -376,6 +378,11 @@ first.
 | `presence.roproxy.com/v1/presence/users` | where an account is right now, down to the place | live location tracking of a person |
 | `inventory.roblox.com/v2/users/{id}/inventory` | what an account owns | a person's possessions |
 | `users.roblox.com/v1/users/{id}` | profile, join date, description | a person's identity record |
+| `users.roblox.com/v1/users/{id}/username-history` | every name an account has used | a person's identity over time |
+| `friends.roblox.com/v1/users/{id}/friends`, `/followers`, `/followings` | the accounts around an account | a person's social graph |
+| `thumbnails.roblox.com/v1/users/avatar-headshot`, `/avatar`, `/avatar-bust` | a picture of an account's avatar | a person's likeness, on a host the tool already calls |
+| `badges.roblox.com/v1/users/{id}/badges`, `/badges/awarded-dates` | the badges an account has earned, and when | a person's play history, on a host the tool already calls |
+| `games.roblox.com/v2/users/{id}/favorite/games` | the games an account has favorited | a person's taste, on a host the tool already calls |
 | `groups.roblox.com/v2/users/{id}/groups/roles` | every group an account belongs to, and its rank | a person's affiliations |
 | `groups.roblox.com/v1/groups/{id}/roles/{roleId}/users` | the membership roster | a list of people |
 | `games.roblox.com/v2/users/{userId}/games` | games published by an account | a catalog keyed to an individual; the group-keyed twin is used instead |

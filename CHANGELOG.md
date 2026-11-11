@@ -7,16 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+### Fixed
 
-- **The boundary says where an experience's creator stands.** `game` and
-  `snapshot` show the creator of every experience, group or user, with its id
-  and name in the text and in `--json`, as the experience's public page does.
-  That has not changed; the README now says so, and says why it is game-level:
-  nothing is followed from a user creator (no profile, presence, inventory,
-  group memberships, other games by that user or history), and a test asserts
-  that no user-keyed endpoint is called. A group's owner and roster stay
-  excluded.
+- **The README contradicted the tool about creators** (documentation only).
+  It said the tool never shows person-level data, while `game` and `snapshot`
+  print the creator of every experience, in the text and in `--json`: for a
+  user-owned one, the account name and its numeric id. It now says what the
+  tool does: the creator is the one identity shown, and nothing is followed
+  from it (no profile, presence, inventory, group memberships, other games by
+  that user or history). Tests assert that no request is keyed to a user or
+  carries the creator's id. A group's owner and roster stay excluded.
+- **`group 0` and `asset 0` are refused before any request**, with exit code
+  1 and `0 is not a valid id`, as a target of `0` already was. They used to
+  be sent to Roblox.
 
 ### Security
 
