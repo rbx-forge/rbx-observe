@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **`h2` 0.4.20 and `tokio` 1.54.1**, for RUSTSEC-2026-0258 and -0386. The one
+  to read is -0258: a server could make the HTTP/2 client queue empty frames
+  without limit, until memory ran out.
+
 ## [0.3.0] - 2026-08-15
 
 ### Changed
@@ -21,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`snapshot`**: one experience, one JSON document, one timestamp — the
+- **`snapshot`**: one experience, one JSON document, one timestamp: the
   artifact the tool was missing. Comparing a storefront across weeks is the
   point, and until now it meant running five commands and reconciling five
   files. It reuses what `game` already fetched rather than asking Roblox twice
@@ -36,10 +42,10 @@ First release. Installable through Rokit.
 
 - **`charts`**: Roblox's own discovery rankings, including `top-earning` and
   the fourteen `trending-in-<category>` sorts that are its real genre taxonomy.
-  The only command that needs no id — it is where the universe ids come from.
+  The only command that needs no id: it is where the universe ids come from.
   `--sort`, `--category`, `--limit` (rendering only; `--json` stays complete).
-- **Eight read commands**: `game`, `storefront`, `badges`, `media`, `places` —
-  each taking a universe id, a place id (`--place`) or a roblox.com game URL —
+- **Eight read commands**: `game`, `storefront`, `badges`, `media`, `places`
+  (each taking a universe id, a place id with `--place`, or a roblox.com game URL),
   plus `group` and `asset`. All of them support `--json`.
 - **`places`**: every place in a universe, whether each looks published or
   internal, and the live server fleet on it (servers, players, seats, fill
@@ -47,7 +53,7 @@ First release. Installable through Rokit.
   says so; Roblox's own `isPlayable` needs a session.
 - **`group` reports live players and unlisted games.** The catalog's CCU costs
   one batched request for up to 50 universes. Roblox also hands anonymous
-  callers a group's staging and test places — those are counted in the summary
+  callers a group's staging and test places: those are counted in the summary
   always and named only under `--all`.
 - **The age gate is reported separately from the maturity label.** They are
   independent: two experiences can both be `Minimal` while one is open to
@@ -66,7 +72,7 @@ First release. Installable through Rokit.
   with a single `rbx-observe asset <ids…>` hint.
 - **`asset`**: any asset id resolved to the CDN URL that renders it, batched,
   with `--size` validated before the request. A URL is only reported for a
-  `Completed` render — Roblox answers a bad id with a placeholder image and no
+  `Completed` render. Roblox answers a bad id with a placeholder image and no
   error, so trusting the URL over the state would hand back a working link for
   a wrong id.
 - **Asset ids everywhere they exist.** Icon (through the place asset, the only
