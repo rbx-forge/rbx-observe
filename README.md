@@ -103,7 +103,7 @@ cargo build --release
 | `rbx-observe badges <target>` | Every badge with total awards, awards in the last day, win rate and icon asset id, most-awarded first |
 | `rbx-observe media <target>` | Carousel screenshots as permanent asset ids, with the preview video if there is one |
 | `rbx-observe places <target>` | Every place in the universe: published or internal, and the live server fleet on each |
-| `rbx-observe group <groupId>` | A studio: members, entry policy, its catalog with live players, and how many games it has that are not publicly listed |
+| `rbx-observe group <group-id>` | A studio: members, entry policy, its catalog with live players, and how many games it has that are not publicly listed |
 | `rbx-observe asset <ids…>` | Any asset id resolved to the URL that renders it, batched |
 
 `<target>` is a universe id, a place id with `--place`, or a game URL. `--json`
