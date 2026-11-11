@@ -184,6 +184,7 @@ pub async fn run(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::commands::boundary::assert_creator_not_followed;
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -371,14 +372,32 @@ mod tests {
         assert!(!summary.contains("PlaceholderUser"), "{summary}");
 
         // Nothing keyed to a person was requested on the way.
-        for request in server.received_requests().await.unwrap() {
-            let target = request.url.as_str();
-            assert!(!target.contains("/users"), "user-keyed request: {target}");
-            assert!(
-                !target.contains("1234567890"),
-                "request about the creator: {target}"
-            );
-        }
+        assert_creator_not_followed(&server, 1234567890).await;
+    }
+
+    #[tokio::test]
+    async fn a_group_creator_is_shown_and_the_group_is_not_read() {
+        // The fixture's group id is 33333333333, distinctive enough to be
+        // searched for in every request of a `--places` run.
+        let server = one_experience().await;
+        Mock::given(method("GET"))
+            .and(path("/v1/games/2222222222222221/servers/Public"))
+            .respond_with(
+                ResponseTemplate::new(200).set_body_string(r#"{"data":[],"nextPageCursor":null}"#),
+            )
+            .mount(&server)
+            .await;
+
+        let snapshot = collect(&Client::with_base_url(&server.uri()), 1111111111111, true)
+            .await
+            .unwrap();
+
+        let json = serde_json::to_value(&snapshot).unwrap();
+        assert_eq!(
+            json["game"]["detail"]["creator"],
+            serde_json::json!({"id": 33333333333_u64, "name": "A Studio", "type": "Group"})
+        );
+        assert_creator_not_followed(&server, 33333333333).await;
     }
 
     #[tokio::test]
