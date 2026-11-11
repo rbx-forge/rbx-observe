@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Found a security problem instead? Don't file it here — use a
+        Found a security problem instead? Don't file it here: use a
         [private advisory](https://github.com/rbx-forge/rbx-observe/security/advisories/new).
 
   - type: input
