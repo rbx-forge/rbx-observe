@@ -15,7 +15,7 @@ repository = "https://github.com/rbx-forge/rbx-observe"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 colored = "2"
-reqwest = { version = "0.12", features = ["json", "gzip"] }
+reqwest = { version = "0.13", features = ["json", "gzip"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # Not `features = ["full"]`. There is no `tokio::spawn` here: tokio is
