@@ -1,4 +1,4 @@
-//! `rbx-observe snapshot` — one experience, one document, one moment.
+//! `rbx-observe snapshot`: one experience, one document, one moment.
 //!
 //! The other commands each answer a question. This one produces the artifact:
 //! everything about a game as of now, in a single JSON document worth keeping
@@ -7,7 +7,7 @@
 //! files by hand.
 //!
 //! It is not five commands glued together. `game` already fetches the
-//! carousel and the place list, so this reuses them instead of asking twice —
+//! carousel and the place list, so this reuses them instead of asking twice:
 //! three requests saved out of roughly fifteen, which is small, but asking
 //! Roblox for an answer you are already holding is the kind of thing that adds
 //! up across a category sweep.
@@ -69,7 +69,7 @@ pub async fn collect(client: &Client, universe_id: u64, with_places: bool) -> Re
 }
 
 /// Everything, in reading order: what the game is, what it sells, what it
-/// rewards, what it shows, and — when asked for — what runs on each place.
+/// rewards, what it shows, and (when asked for) what runs on each place.
 ///
 /// This composes the per-command renderings instead of reimplementing them,
 /// so `snapshot` and `storefront` cannot drift into printing one catalogue

@@ -1,10 +1,10 @@
-//! `games.roblox.com/v1/games/{placeId}/servers/Public` — the servers running
+//! `games.roblox.com/v1/games/{placeId}/servers/Public`: the servers running
 //! right now.
 //!
 //! # What is not read
 //!
 //! Each server entry also carries `playerTokens` and `players`. Anonymously
-//! both come back empty, so there is nothing to drop today — but they are the
+//! both come back empty, so there is nothing to drop today, but they are the
 //! fields that would turn a server list into a list of who is playing, so the
 //! structs below do not declare them. If Roblox ever starts filling them for
 //! anonymous callers, this file keeps ignoring them by construction rather

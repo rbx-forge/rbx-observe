@@ -45,7 +45,7 @@ enum Command {
         /// Read the number as a place id rather than a universe id.
         ///
         /// A game URL carries a place id, and the two are separate numbering
-        /// spaces — passing one where the other belongs is the classic way to
+        /// spaces: passing one where the other belongs is the classic way to
         /// get plausible data about something else entirely.
         #[arg(long)]
         place: bool,
@@ -114,7 +114,7 @@ enum Command {
 
     /// What Roblox is pushing right now: its own rankings.
     ///
-    /// The discovery command — every other one needs a universe id, this one
+    /// The discovery command: every other one needs a universe id, this one
     /// hands them out.
     Charts {
         /// One sort only, by id (`top-playing-now`, `top-earning`,

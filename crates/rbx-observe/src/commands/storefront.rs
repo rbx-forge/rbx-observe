@@ -1,4 +1,4 @@
-//! `rbx-observe storefront` — what the experience sells.
+//! `rbx-observe storefront`: what the experience sells.
 
 use std::fmt::Write;
 
@@ -222,7 +222,7 @@ mod tests {
 
         assert_eq!(store.game_passes.len(), 2);
         // Off sale sorts last even though its price is the highest number in
-        // the response — the ordering is about what a buyer can pay today.
+        // the response: the ordering is about what a buyer can pay today.
         assert_eq!(store.game_passes[0].name, "VIP");
         assert_eq!(store.game_passes[1].name, "Old");
         assert_eq!(store.summary.passes_for_sale, 1);

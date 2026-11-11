@@ -1,4 +1,4 @@
-//! `apis.roblox.com` — game passes and developer products.
+//! `apis.roblox.com`: game passes and developer products.
 //!
 //! The two endpoints sit on the same host, describe the same kind of thing,
 //! and disagree on everything mechanical:

@@ -1,4 +1,4 @@
-//! `badges.roblox.com` — the badges an experience publishes.
+//! `badges.roblox.com`: the badges an experience publishes.
 //!
 //! Cursor pagination: `cursor` in, `nextPageCursor` out, loop until it is
 //! null. The developer-products endpoint uses the same idiom under a different
@@ -111,7 +111,7 @@ mod tests {
             .await;
 
         // The cursor is opaque base64 with `+` and `=` in it. wiremock matches
-        // the decoded value, so this asserts the encoding round-trips — a
+        // the decoded value, so this asserts the encoding round-trips: a
         // cursor formatted into the URL by hand would arrive mangled and the
         // API would hand back page one forever.
         Mock::given(method("GET"))

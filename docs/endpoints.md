@@ -46,7 +46,7 @@ things, and none of them is recognisable by looking at it.
 GET https://games.roblox.com/v1/games?universeIds={universeId}
 ```
 
-No pagination. Accepts a comma-separated list (50 ids per call in practice —
+No pagination. Accepts a comma-separated list (50 ids per call in practice:
 100 answers `Too many universe IDs were requested`).
 
 An unknown id is **not an error**: the response is `{"data":[]}` with status
@@ -80,7 +80,7 @@ GET https://badges.roblox.com/v1/universes/{universeId}/badges
 ```
 
 **Cursor pagination**: array under `data`, continuation in `nextPageCursor`,
-loop until it is null *or empty* — both have been observed as the terminator.
+loop until it is null *or empty*: both have been observed as the terminator.
 
 `statistics` is the interesting half: `awardedCount`, `pastDayAwardedCount`,
 and `winRatePercentage`, which despite the name is a fraction between 0 and 1.
@@ -126,7 +126,7 @@ return a CDN URL whose hash is not reversible into an asset id, and
 Everything else in the response duplicates the games endpoint.
 
 > **The trap.** This endpoint takes an **asset id** and does not police what you
-> send it. A universe id returns `200` with a completely unrelated asset —
+> send it. A universe id returns `200` with a completely unrelated asset:
 > someone else's shirt, with a plausible name and a real creator. There is no
 > error anywhere in the exchange.
 >
@@ -175,7 +175,7 @@ really the icon.
 GET https://games.roblox.com/v2/games/{universeId}/media
 ```
 
-**Not batched** — one request per experience, which makes it the expensive one
+**Not batched**: one request per experience, which makes it the expensive one
 for anything doing bulk work.
 
 `imageId` is a permanent asset id. Asset type `86` (`GamePreviewVideo`) is a
@@ -193,8 +193,8 @@ POST https://apis.roblox.com/experience-guidelines-api/experience-guidelines/get
 {"universeId": 1111111111111}
 ```
 
-The only POST in this tool — the universe id travels in a body rather than a
-query string — and still a read.
+The only POST in this tool (the universe id travels in a body rather than a
+query string), and still a read.
 
 Answers the label the game page shows (`Minimal`, `Mild`, `Moderate`,
 `Restricted`), a `minimumAge`, and `descriptorUsages`: the content descriptors
@@ -219,7 +219,7 @@ unusual enough to be worth stating. The place-level endpoint beside it,
 `/v1/places/{placeId}`, answers 404 anonymously.
 
 **It does not say whether a place is public or private.** Roblox exposes no
-per-place visibility flag anonymously — `isPlayable` lives on
+per-place visibility flag anonymously: `isPlayable` lives on
 `games.roblox.com/v1/games/multiget-place-details`, which answers
 `Authentication token is missing`. Anonymity buys existence, name and
 description, and nothing further.
@@ -251,7 +251,7 @@ Batched, and the way `rbx-observe asset` works. `targetId` is the asset id
 here, so results map straight back to the input.
 
 > **The trap.** A nonexistent id, or one naming something with no image,
-> answers `state: "Error"` **with an `imageUrl`** — the grey "no thumbnail"
+> answers `state: "Error"` **with an `imageUrl`**, the grey "no thumbnail"
 > placeholder, byte-identical for every bad id. Trusting the URL rather than
 > the state hands back a working link for a wrong id. Only `Completed` is
 > reported as a URL.
@@ -280,7 +280,7 @@ entry point to everything else.
 
 Token pagination. Page one carries six sorts; the remaining pages carry
 `top-earning` (a revenue proxy Roblox publishes for free), `top-rated`,
-`most-popular` and fourteen `trending-in-<category>` rankings — Roblox's real
+`most-popular` and fourteen `trending-in-<category>` rankings, Roblox's real
 genre taxonomy, which the `genre` field on a game does not give you. Roughly 26
 game sorts over 5 pages.
 
@@ -291,7 +291,7 @@ rows are paid placements, kept and marked rather than dropped.
 Page one also opens with a `filters_v5` entry whose `contentType` is `Filters`
 and whose game list is empty: UI furniture, filtered out.
 
-The `sessionId` is required and is **not** authentication — it is how Roblox
+The `sessionId` is required and is **not** authentication: it is how Roblox
 keeps one browsing session's pagination consistent. A fresh `rbx-observe-<ms>`
 per run, carrying nothing identifying.
 
@@ -307,7 +307,7 @@ places runs several independent fleets. Each entry carries `playing`,
 size, an occupancy and a fill rate.
 
 Each entry also carries `playerTokens` and `players`. Anonymously both come
-back **empty**, so there is nothing to drop today — but they are the fields
+back **empty**, so there is nothing to drop today, but they are the fields
 that would turn a server list into a list of who is playing, so the structs do
 not declare them. If Roblox ever starts filling them for anonymous callers,
 this stays ignored by construction rather than by luck.
@@ -337,7 +337,7 @@ versus fifty:
 
 | Endpoint | Batches on | Cap |
 |---|---|---|
-| `games/v1/games` | `universeIds` | **50** — 100 answers `Too many universe IDs were requested` |
+| `games/v1/games` | `universeIds` | **50** (100 answers `Too many universe IDs were requested`) |
 | `games/v1/games/votes` | `universeIds` | 50 |
 | `thumbnails/v1/assets` | `assetIds` | 50 used here |
 | `thumbnails/v1/games/icons` | `universeIds` | 50 |

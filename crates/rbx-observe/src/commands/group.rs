@@ -1,4 +1,4 @@
-//! `rbx-observe group` — a studio and its catalog.
+//! `rbx-observe group`: a studio and its catalog.
 //!
 //! Games and the organisation that publishes them. There is no user-keyed twin
 //! of this command: `games.roblox.com/v2/users/{userId}/games` exists and is
@@ -55,7 +55,7 @@ pub async fn collect(
     };
 
     // The catalog listing carries lifetime visits but not live players, and
-    // the details endpoint takes 50 universe ids at a time — so the whole
+    // the details endpoint takes 50 universe ids at a time, so the whole
     // catalog's CCU costs one request, not one per game.
     let universe_ids: Vec<u64> = shown.iter().map(|game| game.id).collect();
     let playing: HashMap<u64, u64> = client
@@ -151,7 +151,7 @@ pub fn render(report: &GroupReport) -> String {
             out,
             "  {}",
             dim(&format!(
-                "{} more are not in the public listing — staging and test places Roblox \
+                "{} more are not in the public listing: staging and test places Roblox \
                  still returns anonymously{}",
                 report.unlisted_count,
                 if shown { "" } else { " (--all lists them)" }
@@ -240,7 +240,7 @@ mod tests {
         assert_eq!(report.games.len(), 2);
         assert_eq!(report.unlisted_count, 1);
         assert_eq!(report.playing_now, 100);
-        // Counted, not hidden — but its name is not printed unless asked.
+        // Counted, not hidden, but its name is not printed unless asked.
         assert!(!report.games.iter().any(|entry| entry.game.id == 3));
         assert_eq!(report.total_visits, 1000);
 

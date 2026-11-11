@@ -1,4 +1,4 @@
-//! `develop.roblox.com` — the places inside a universe.
+//! `develop.roblox.com`: the places inside a universe.
 //!
 //! An experience is one universe with one root place plus, often, a handful of
 //! others: a tutorial, a lobby, a staging copy the developer forgot to delete.
@@ -39,7 +39,7 @@ const PAGE_SIZE: &str = "100";
 const MAX_PAGES: usize = 50;
 
 impl Client {
-    /// Every place in the universe, root first if Roblox says so — the order
+    /// Every place in the universe, root first if Roblox says so. The order
     /// is the API's and is not documented as meaningful, so callers that care
     /// about the root should compare ids with `rootPlaceId` rather than take
     /// the first entry.
