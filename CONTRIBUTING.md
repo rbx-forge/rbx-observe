@@ -5,7 +5,9 @@ before writing code**. A PR that arrives without one risks being declined for
 scope reasons that have nothing to do with its quality.
 
 **Read the boundary in the [README](./README.md#the-boundary-which-does-not-move)
-first.** Anything that collects person-level data is out, however it is framed.
+first.** Anything that follows a person (a profile, presence, an inventory, group
+memberships, other games by a user, per-user history) is out, however it is
+framed.
 That is the one non-negotiable in this repository.
 
 ## Setup
