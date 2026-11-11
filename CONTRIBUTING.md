@@ -107,9 +107,10 @@ step one rather than an afterthought.
    a plain `git tag vX.Y.Z` is created locally, silently skipped by the push,
    and the release workflow never fires.
 4. `release.yml` builds the three targets, zips the bare binary of each with a
-   `SHA256SUMS`, and publishes the release. Not a draft: Rokit resolves against
-   the releases API, which does not show drafts, so a draft is indistinguishable
-   from no release for every install command in the README.
+   `SHA256SUMS`, attests the build provenance of each archive, and publishes
+   the release. Not a draft: Rokit resolves against the releases API, which
+   does not show drafts, so a draft is indistinguishable from no release for
+   every install command in the README.
 
 ## Security
 

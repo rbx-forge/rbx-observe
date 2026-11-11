@@ -12,7 +12,8 @@ env:
   CARGO_TERM_COLOR: always
 
 # The build runs with read access only: it compiles every dependency's build
-# script. The publishing job alone asks for write access.
+# script. The publishing job alone asks for write access, so a compromised
+# build step cannot write to the repository or mint an attestation.
 permissions:
   contents: read
 
@@ -75,11 +76,21 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: write
+      # Both are what `actions/attest-build-provenance` needs: an OIDC token to
+      # sign with, and the right to store the attestation.
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           merge-multiple: true
       - run: sha256sum rbx-observe-*.zip > SHA256SUMS
+      # `gh attestation verify <zip> --repo rbx-forge/rbx-observe` proves the
+      # archive was built here, from this tag.
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: rbx-observe-*.zip
       # Published, not a draft. Rokit resolves against the GitHub releases API,
       # which does not show drafts to anyone but the maintainer: a draft
       # release is indistinguishable from no release for every install command
