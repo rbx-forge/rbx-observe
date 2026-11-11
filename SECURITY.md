@@ -40,7 +40,8 @@ Out of scope:
 
 ## The boundary is a security property
 
-The README's rule (game-level public data only, never person-level) is
-enforced by review, not by a sandbox. A change that starts collecting
-person-level data is a defect in this project even if nothing technically
-breaks, and reporting one as such is welcome.
+The README's rule (game-level public data only; an experience's creator is
+the one identity shown, and nothing follows a person) is enforced by review,
+not by a sandbox. A change that starts following a person is a defect in this
+project even if nothing technically breaks, and reporting one as such is
+welcome.
