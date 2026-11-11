@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use super::Client;
 
-/// The attribution the experience's public page shows, group or user alike:
-/// it describes the game. The account flags Roblox sends beside it
+/// Who published the experience, group or user alike: the name and the
+/// numeric id, and nothing else. The account flags Roblox sends beside them
 /// (`isRNVAccount`, `hasVerifiedBadge`) are not declared, and nothing keyed
 /// to a user is ever requested from here.
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
@@ -243,7 +243,13 @@ mod tests {
             .unwrap_err()
             .to_string();
 
-        assert!(error.contains("--place"), "{error}");
+        // Pinned whole: this is the sentence that tells someone they pasted
+        // the number from a game URL, and a reworded hint is a changed one.
+        assert_eq!(
+            error,
+            "No experience with universe id 123. If that number came from a game URL \
+             it is a place id: pass --place."
+        );
     }
 
     #[tokio::test]

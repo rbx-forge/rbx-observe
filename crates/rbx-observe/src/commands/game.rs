@@ -274,6 +274,7 @@ pub async fn run(client: &Client, universe_id: u64, json: bool) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::commands::boundary::assert_creator_not_followed;
     use wiremock::matchers::{method, path};
     use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -492,24 +493,8 @@ mod tests {
         assert_eq!(creator_line(&Creator::default()), "creator unknown");
     }
 
-    /// Asserts on every request a run made: none of them may be keyed to a
-    /// person. `with_base_url` points every host at the mock, so this list is
-    /// the complete traffic of the run.
-    async fn assert_no_person_was_looked_up(server: &MockServer) {
-        let requests = server.received_requests().await.unwrap();
-        assert!(!requests.is_empty());
-        for request in &requests {
-            let target = request.url.as_str();
-            assert!(!target.contains("/users"), "user-keyed request: {target}");
-            assert!(
-                !target.contains("1234567890"),
-                "request about the creator: {target}"
-            );
-        }
-    }
-
     #[tokio::test]
-    async fn a_user_creator_is_shown_as_the_page_shows_it_and_nothing_more() {
+    async fn a_user_creator_is_shown_by_name_and_id_and_nothing_more() {
         colored::control::set_override(false);
         // The shape Roblox sends for a user-owned experience. The id and the
         // name are invented; the two flags beside them are the real fields.
@@ -523,7 +508,7 @@ mod tests {
             .await
             .unwrap();
 
-        // The creator is game-level: the experience's public page prints it.
+        // Who published the game: the account name and its numeric id.
         let text = render(&game);
         assert!(
             text.contains("  User PlaceholderUser (1234567890)\n"),
@@ -540,13 +525,17 @@ mod tests {
         assert!(!text.contains("rbx-observe group 1234567890"), "{text}");
 
         // And nothing else about that person was asked for.
-        assert_no_person_was_looked_up(&server).await;
+        assert_creator_not_followed(&server, 1234567890).await;
     }
 
     #[tokio::test]
     async fn a_group_creator_is_shown_with_the_command_that_opens_it() {
         colored::control::set_override(false);
-        let server = server_with_a_full_game().await;
+        // A distinctive group id, so that a request naming it cannot hide in
+        // a coincidence with another number of the run.
+        let server =
+            server_with_a_game_by(r#"{"id":33333333334,"name":"Northwind Studio","type":"Group"}"#)
+                .await;
 
         let game = collect(&Client::with_base_url(&server.uri()), 42)
             .await
@@ -554,15 +543,19 @@ mod tests {
 
         let text = render(&game);
         assert!(
-            text.contains("  Group Northwind Studio (1) · rbx-observe group 1\n"),
+            text.contains(
+                "  Group Northwind Studio (33333333334) · rbx-observe group 33333333334\n"
+            ),
             "{text}"
         );
         let json = serde_json::to_value(&game).unwrap();
         assert_eq!(
             json["detail"]["creator"],
-            serde_json::json!({"id": 1, "name": "Northwind Studio", "type": "Group"})
+            serde_json::json!({"id": 33333333334_u64, "name": "Northwind Studio", "type": "Group"})
         );
-        assert_no_person_was_looked_up(&server).await;
+        // The drill-down is printed, not taken: `game` neither reads the
+        // group nor anything keyed to its owner.
+        assert_creator_not_followed(&server, 33333333334).await;
     }
 
     #[test]
