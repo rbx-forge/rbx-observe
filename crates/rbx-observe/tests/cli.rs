@@ -91,6 +91,23 @@ fn zero_is_not_an_id() {
 }
 
 #[test]
+fn zero_is_not_a_group_or_an_asset_id_either() {
+    // Refused before the client exists, which is also what keeps this
+    // offline: a zero that reached Roblox would be a live request.
+    for args in [
+        vec!["group", "0"],
+        vec!["asset", "0"],
+        vec!["asset", "1", "0"],
+    ] {
+        rbx_observe()
+            .args(&args)
+            .assert()
+            .code(1)
+            .stderr(contains("0 is not a valid id"));
+    }
+}
+
+#[test]
 fn an_unknown_command_is_a_usage_error() {
     rbx_observe().arg("observe-everything").assert().code(2);
 }

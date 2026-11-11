@@ -2,8 +2,9 @@
 //!
 //! # The boundary
 //!
-//! Game-level, aggregate, public data only. Never person-level: no player
-//! lists, no account tracking, no per-user history. That line separates market
+//! Game-level, aggregate, public data only. An experience's creator is the one
+//! identity shown, and nothing follows a person: no player lists, no account
+//! tracking, no per-user history. That line separates market
 //! research from surveillance, and it is a design constraint rather than a
 //! policy: every endpoint added here has to be justifiable against it.
 //!
@@ -18,7 +19,7 @@ mod commands;
 mod render;
 mod target;
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use clap::{Parser, Subcommand};
 
 use crate::api::Client;
@@ -183,11 +184,27 @@ impl Command {
         };
         Target::parse(raw, place).map(Some)
     }
+
+    /// The two commands keyed by something other than a target get the same
+    /// guard `Target::parse` applies: no Roblox id is `0`, so sending one
+    /// would only spend a request to learn that.
+    fn check_ids(&self) -> Result<()> {
+        let has_zero = match self {
+            Command::Group { group_id, .. } => *group_id == 0,
+            Command::Asset { asset_ids, .. } => asset_ids.contains(&0),
+            _ => false,
+        };
+        if has_zero {
+            bail!("0 is not a valid id");
+        }
+        Ok(())
+    }
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
+    cli.command.check_ids()?;
     let client = Client::new()?;
 
     // Resolved before dispatch so that a place id costs its one extra lookup
@@ -265,6 +282,20 @@ mod tests {
 
         let asset = Cli::try_parse_from(["rbx-observe", "asset", "1", "2"]).unwrap();
         assert_eq!(asset.command.target().unwrap(), None);
+    }
+
+    #[test]
+    fn a_zero_group_or_asset_id_is_refused_before_any_request() {
+        let parse = |args: &[&str]| Cli::try_parse_from(args).unwrap().command.check_ids();
+
+        assert!(parse(&["rbx-observe", "group", "0"]).is_err());
+        assert!(parse(&["rbx-observe", "asset", "0"]).is_err());
+        // One zero among valid ids is still refused, rather than sent along.
+        assert!(parse(&["rbx-observe", "asset", "1", "0", "2"]).is_err());
+
+        assert!(parse(&["rbx-observe", "group", "33333333333"]).is_ok());
+        assert!(parse(&["rbx-observe", "asset", "1", "2"]).is_ok());
+        assert!(parse(&["rbx-observe", "game", "1"]).is_ok());
     }
 
     #[test]
