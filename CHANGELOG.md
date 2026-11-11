@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Release archives carry a build provenance attestation**:
+  `gh attestation verify <zip> --repo rbx-forge/rbx-observe`. The build jobs
+  run with read access only, and the publishing job alone may write.
+
 ## [0.3.1] - 2026-11-11
 
 ### Fixed

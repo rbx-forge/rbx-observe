@@ -17,6 +17,15 @@ advisory unless you ask otherwise. No bounty program.
 
 Only the latest release.
 
+## Verifying a download
+
+Each release archive carries a build provenance attestation, a signed
+statement of which workflow run and commit produced it:
+
+```sh
+gh attestation verify rbx-observe-v0.0.0-x86_64-unknown-linux-gnu.zip --repo rbx-forge/rbx-observe
+```
+
 ## Threat model
 
 This tool takes **no credentials**. It reads public Roblox endpoints, and there
