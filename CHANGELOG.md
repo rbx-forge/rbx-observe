@@ -18,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that no user-keyed endpoint is called. A group's owner and roster stay
   excluded.
 
+### Security
+
+- **rustls 0.23.46**, up from 0.23.43, for three advisories:
+  GHSA-c8m5-c952-6cm4 (a session's `Debug` output exposed TLS secrets),
+  GHSA-w44r-93j7-qv28 (an unauthenticated ServerHello could downgrade later
+  handshakes to a classical key share) and GHSA-h2v8-394m-p7vv (certificate
+  decompression could allocate up to 1 GiB before authentication). rustls
+  sits in `Cargo.lock` but is not built into the binary, whose TLS goes
+  through reqwest's default `native-tls`, so no release was exposed: the
+  bump keeps the lockfile clean of known advisories.
+
 ## [0.3.0] - 2026-08-15
 
 ### Changed
